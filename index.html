@@ -1,1826 +1,1342 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Checklist Digital - Tiger Rentank</title>
-    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --yellow: #FFCC00;
-            --yellow-dark: #E6B800;
-            --yellow-glow: rgba(255, 204, 0, 0.25);
-            --orange: #FF9900;
-            --bg: #0F0F0F;
-            --bg-card: #1A1A1A;
-            --bg-input: #242424;
-            --bg-section: #1E1E1E;
-            --border: #2E2E2E;
-            --border-active: #3E3E3E;
-            --text: #F0F0F0;
-            --text-muted: #888;
-            --text-dim: #555;
-            --success: #22C55E;
-            --danger: #EF4444;
-            --warning: #F97316;
-            --info: #3B82F6;
-            --radius: 12px;
-            --radius-sm: 8px;
-            --radius-lg: 16px;
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-
-        body {
-            background-color: var(--bg);
-            color: var(--text);
-            font-family: 'DM Sans', sans-serif;
-            line-height: 1.5;
-            min-height: 100vh;
-        }
-
-        /* ── HEADER ── */
-        header {
-            background: var(--bg-card);
-            border-bottom: 1px solid var(--border);
-            padding: 0 24px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 16px;
-            height: 64px;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            backdrop-filter: blur(12px);
-        }
-
-        .logo-badge {
-            background: var(--yellow);
-            color: #111;
-            font-family: 'Syne', sans-serif;
-            font-weight: 800;
-            font-size: 11px;
-            letter-spacing: 0.08em;
-            padding: 6px 12px;
-            border-radius: 6px;
-            white-space: nowrap;
-        }
-
-        .header-title {
-            font-family: 'Syne', sans-serif;
-            font-size: 15px;
-            font-weight: 700;
-            color: var(--text);
-            letter-spacing: 0.03em;
-            text-transform: uppercase;
-        }
-
-        .header-right { display: flex; align-items: center; gap: 8px; }
-
-        /* ── NAV TABS ── */
-        .nav-bar {
-            background: var(--bg-card);
-            border-bottom: 1px solid var(--border);
-            padding: 0 24px;
-            display: flex;
-            gap: 4px;
-            overflow-x: auto;
-        }
-
-        .nav-tab {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 0 20px;
-            height: 48px;
-            font-family: 'Syne', sans-serif;
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--text-muted);
-            text-decoration: none;
-            cursor: pointer;
-            border-bottom: 2px solid transparent;
-            transition: all 0.2s;
-            white-space: nowrap;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
-        }
-
-        .nav-tab:hover { color: var(--text); }
-        .nav-tab.active {
-            color: var(--yellow);
-            border-bottom-color: var(--yellow);
-        }
-
-        /* ── LAYOUT ── */
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 24px 16px;
-        }
-
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-
-        /* ── SECTION CARDS ── */
-        .section-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-lg);
-            padding: 24px;
-            margin-bottom: 16px;
-            transition: border-color 0.2s;
-        }
-
-        .section-card:hover { border-color: var(--border-active); }
-
-        .section-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .section-icon {
-            width: 32px;
-            height: 32px;
-            background: var(--yellow-glow);
-            border: 1px solid rgba(255,204,0,0.3);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            flex-shrink: 0;
-        }
-
-        .section-title {
-            font-family: 'Syne', sans-serif;
-            font-size: 14px;
-            font-weight: 700;
-            color: var(--yellow);
-            letter-spacing: 0.06em;
-            text-transform: uppercase;
-        }
-
-        /* ── PAGE TITLE ── */
-        .page-title {
-            font-family: 'Syne', sans-serif;
-            font-size: 24px;
-            font-weight: 800;
-            margin-bottom: 6px;
-            color: var(--text);
-        }
-
-        .page-subtitle {
-            font-size: 14px;
-            color: var(--text-muted);
-            margin-bottom: 24px;
-        }
-
-        /* ── FORM GRID ── */
-        .form-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-        }
-
-        .form-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
-        .form-grid.full { grid-template-columns: 1fr; }
-
-        .form-group { display: flex; flex-direction: column; gap: 6px; }
-        .form-group.span-2 { grid-column: span 2; }
-
-        label {
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-        }
-
-        input[type="text"],
-        input[type="date"],
-        select,
-        textarea {
-            background: var(--bg-input);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            color: var(--text);
-            padding: 10px 14px;
-            font-size: 14px;
-            font-family: 'DM Sans', sans-serif;
-            width: 100%;
-            transition: border-color 0.2s, box-shadow 0.2s;
-            outline: none;
-        }
-
-        input:focus, select:focus, textarea:focus {
-            border-color: var(--yellow);
-            box-shadow: 0 0 0 3px var(--yellow-glow);
-        }
-
-        textarea { resize: vertical; min-height: 80px; }
-
-        /* ── BUTTONS ── */
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            padding: 10px 20px;
-            border: none;
-            border-radius: var(--radius-sm);
-            font-family: 'Syne', sans-serif;
-            font-size: 13px;
-            font-weight: 700;
-            letter-spacing: 0.05em;
-            cursor: pointer;
-            transition: all 0.15s;
-            text-transform: uppercase;
-            white-space: nowrap;
-            -webkit-tap-highlight-color: transparent;
-            user-select: none;
-            -webkit-user-select: none;
-        }
-
-        .btn:active { transform: scale(0.97); }
-
-        .btn-primary {
-            background: var(--yellow);
-            color: #111;
-        }
-        .btn-primary:hover { background: var(--yellow-dark); box-shadow: 0 4px 20px var(--yellow-glow); }
-
-        .btn-success {
-            background: var(--success);
-            color: white;
-        }
-        .btn-success:hover { background: #16a34a; box-shadow: 0 4px 16px rgba(34,197,94,0.3); }
-
-        .btn-danger {
-            background: transparent;
-            color: var(--danger);
-            border: 1px solid rgba(239,68,68,0.3);
-        }
-        .btn-danger:hover { background: rgba(239,68,68,0.1); border-color: var(--danger); }
-
-        .btn-warning {
-            background: transparent;
-            color: var(--text-muted);
-            border: 1px solid var(--border);
-        }
-        .btn-warning:hover { background: var(--bg-input); border-color: var(--border-active); color: var(--text); }
-
-        .btn-ghost {
-            background: transparent;
-            color: var(--text-muted);
-            border: 1px solid var(--border);
-        }
-        .btn-ghost:hover { background: var(--bg-input); color: var(--text); }
-
-        .btn-sm {
-            padding: 6px 12px;
-            font-size: 11px;
-            border-radius: 6px;
-        }
-
-        .btn-icon {
-            width: 32px;
-            height: 32px;
-            padding: 0;
-            border-radius: 6px;
-        }
-
-        .btn-group {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-top: 8px;
-        }
-
-        /* ── RADIO / CHECKBOX GROUPS ── */
-        .radio-group {
-            display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
-        }
-
-        .radio-pill {
-            display: flex;
-            align-items: center;
-        }
-
-        .radio-pill input[type="radio"] {
-            position: absolute;
-            opacity: 0;
-            width: 0;
-            height: 0;
-            pointer-events: none;
-        }
-
-        .radio-pill label {
-            padding: 8px 18px;
-            border-radius: 100px;
-            border: 1.5px solid var(--border-active);
-            color: var(--text-muted);
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            transition: background 0.15s, color 0.15s, border-color 0.15s, transform 0.1s;
-            user-select: none;
-            -webkit-user-select: none;
-            -webkit-tap-highlight-color: transparent;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .radio-pill label:active {
-            transform: scale(0.94);
-            opacity: 0.85;
-        }
-
-        .radio-pill input:checked + label {
-            background: var(--yellow);
-            color: #111;
-            border-color: var(--yellow);
-            box-shadow: 0 0 0 3px var(--yellow-glow);
-        }
-
-        .radio-pill.danger input:checked + label {
-            background: var(--danger);
-            color: white;
-            border-color: var(--danger);
-            box-shadow: 0 0 0 3px rgba(239,68,68,0.2);
-        }
-
-        .radio-pill.success input:checked + label {
-            background: var(--success);
-            color: white;
-            border-color: var(--success);
-            box-shadow: 0 0 0 3px rgba(34,197,94,0.2);
-        }
-
-        /* ── INSPECTION ITEMS ── */
-        .inspection-item {
-            background: var(--bg-section);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            padding: 14px 16px;
-            margin-bottom: 8px;
-            transition: border-color 0.2s;
-        }
-
-        .inspection-item:hover { border-color: var(--border-active); }
-
-        .inspection-question {
-            font-size: 13px;
-            color: var(--text);
-            margin-bottom: 10px;
-            line-height: 1.4;
-        }
-
-        /* ── SERVICES GRID ── */
-        .services-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 8px;
-        }
-
-        .service-checkbox { display: none; }
-
-        .service-label {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 14px;
-            background: var(--bg-section);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-            transition: all 0.15s;
-            user-select: none;
-            -webkit-user-select: none;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        .service-label::before {
-            content: '';
-            width: 16px;
-            height: 16px;
-            border: 1.5px solid var(--border-active);
-            border-radius: 4px;
-            flex-shrink: 0;
-            transition: all 0.15s;
-        }
-
-        .service-checkbox:checked + .service-label {
-            background: rgba(255,204,0,0.08);
-            border-color: rgba(255,204,0,0.4);
-            color: var(--yellow);
-        }
-
-        .service-checkbox:checked + .service-label::before {
-            background: var(--yellow);
-            border-color: var(--yellow);
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2 6l3 3 5-5' stroke='%23111' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-            background-size: 10px;
-            background-position: center;
-            background-repeat: no-repeat;
-        }
-
-        /* ── EQUIPAMENTO CARD ── */
-        .equipamento-card {
-            background: var(--bg-section);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            padding: 16px;
-            margin-bottom: 12px;
-            position: relative;
-        }
-
-        .equipamento-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 14px;
-        }
-
-        .equipamento-badge {
-            background: var(--yellow-glow);
-            border: 1px solid rgba(255,204,0,0.25);
-            color: var(--yellow);
-            font-family: 'Syne', sans-serif;
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 0.08em;
-            padding: 4px 10px;
-            border-radius: 6px;
-            text-transform: uppercase;
-        }
-
-        /* ── SIGNATURE ── */
-        .signature-wrap {
-            border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            background: #fff;
-            height: 130px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .signature-wrap canvas { width: 100%; height: 100%; }
-
-        /* ── PHOTO ── */
-        .photo-upload-area {
-            border: 1.5px dashed var(--border-active);
-            border-radius: var(--radius-sm);
-            padding: 16px;
-            background: var(--bg-section);
-        }
-
-        .photo-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-            gap: 8px;
-            margin-top: 12px;
-        }
-
-        .photo-item {
-            width: 80px;
-            height: 80px;
-            border-radius: 8px;
-            overflow: hidden;
-            position: relative;
-            border: 1px solid var(--border);
-        }
-
-        .photo-item img { width: 100%; height: 100%; object-fit: cover; }
-
-        .remove-photo {
-            position: absolute;
-            top: 3px; right: 3px;
-            width: 20px; height: 20px;
-            background: rgba(0,0,0,0.7);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer;
-            font-size: 13px;
-            line-height: 1;
-        }
-
-        .remove-photo:hover { background: var(--danger); }
-
-        .photo-count-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            background: var(--bg-input);
-            border: 1px solid var(--border);
-            border-radius: 100px;
-            padding: 3px 10px;
-            font-size: 12px;
-            color: var(--text-muted);
-            margin-top: 8px;
-        }
-
-        /* ── STATUS BADGE ── */
-        .status-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            padding: 3px 10px;
-            border-radius: 100px;
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-        }
-
-        .status-badge::before {
-            content: '';
-            width: 6px; height: 6px;
-            border-radius: 50%;
-            background: currentColor;
-        }
-
-        .badge-approved { background: rgba(34,197,94,0.15); color: var(--success); }
-        .badge-rejected { background: rgba(239,68,68,0.15); color: var(--danger); }
-        .badge-pending { background: rgba(249,115,22,0.15); color: var(--warning); }
-
-        /* ── HISTORY ── */
-        .history-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 16px;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            transition: border-color 0.2s;
-        }
-
-        .history-card:hover { border-color: var(--border-active); }
-
-        .history-info { flex: 1; }
-
-        .history-client {
-            font-family: 'Syne', sans-serif;
-            font-size: 15px;
-            font-weight: 700;
-            color: var(--text);
-            margin-bottom: 4px;
-        }
-
-        .history-meta {
-            font-size: 12px;
-            color: var(--text-muted);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .meta-dot { color: var(--text-dim); }
-
-        .history-actions { display: flex; gap: 6px; align-items: center; }
-
-        /* ── FILTERS ── */
-        .filters-bar {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-bottom: 16px;
-            align-items: flex-end;
-        }
-
-        .filter-group { display: flex; flex-direction: column; gap: 4px; min-width: 130px; }
-        .filter-group label { font-size: 11px; color: var(--text-muted); }
-        .filter-group select,
-        .filter-group input { padding: 8px 12px; font-size: 13px; }
-
-        /* ── NOTIFICATION ── */
-        .notification {
-            position: fixed;
-            bottom: 24px; right: 24px;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-left: 3px solid var(--success);
-            color: var(--text);
-            padding: 12px 20px;
-            border-radius: var(--radius-sm);
-            font-size: 13px;
-            font-weight: 500;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-            z-index: 999;
-            transform: translateY(0);
-            opacity: 1;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            max-width: 320px;
-        }
-
-        .notification.hidden {
-            opacity: 0;
-            transform: translateY(12px);
-            pointer-events: none;
-        }
-
-        .notification.error { border-left-color: var(--danger); }
-
-        /* ── EMPTY STATE ── */
-        .empty-state {
-            text-align: center;
-            padding: 48px 24px;
-            color: var(--text-muted);
-        }
-
-        .empty-state-icon {
-            font-size: 40px;
-            margin-bottom: 12px;
-            opacity: 0.4;
-        }
-
-        .empty-state p { font-size: 14px; }
-
-        /* ── DIVIDER ── */
-        .divider {
-            border: none;
-            border-top: 1px solid var(--border);
-            margin: 20px 0;
-        }
-
-        /* ── FILE INPUT ── */
-        input[type="file"] {
-            display: none;
-        }
-
-        /* ── TOUCH TARGET GLOBAL ── */
-        @media (pointer: coarse) {
-            .btn { min-height: 44px; }
-            .radio-pill label { min-height: 40px; display: flex; align-items: center; }
-            .service-label { min-height: 44px; }
-            input, select, textarea { min-height: 44px; font-size: 16px !important; /* prevents iOS zoom */ }
-            .nav-tab { min-height: 48px; }
-        }
-
-        /* ── TABLET (481px – 768px) ── */
-        @media (min-width: 481px) and (max-width: 768px) {
-            header {
-                padding: 0 20px;
-                height: 56px;
-            }
-            .header-title { font-size: 13px; }
-
-            .nav-bar { padding: 0 16px; }
-            .nav-tab { padding: 0 16px; font-size: 13px; height: 44px; }
-
-            .container { padding: 20px 16px; }
-
-            .page-title { font-size: 20px; }
-            .section-card { padding: 20px; }
-
-            /* 2 colunas no tablet */
-            .form-grid { grid-template-columns: 1fr 1fr; }
-            .form-grid.cols-3 { grid-template-columns: 1fr 1fr; }
-            .form-group.span-2 { grid-column: span 2; }
-
-            .services-grid { grid-template-columns: 1fr 1fr; }
-
-            .history-card {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 12px;
-            }
-            .history-actions {
-                align-self: stretch;
-                justify-content: flex-end;
-            }
-            .history-actions .btn { flex: 1; justify-content: center; }
-
-            .filters-bar { gap: 8px; }
-            .filter-group { min-width: 140px; }
-
-            .btn-group { gap: 10px; }
-            .btn-group .btn { flex: 1; justify-content: center; }
-
-            .photo-grid { grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); }
-            .photo-item { width: 100%; height: 90px; }
-        }
-
-        /* ── MOBILE GRANDE (361px – 480px) ── */
-        @media (min-width: 361px) and (max-width: 480px) {
-            header {
-                padding: 0 14px;
-                height: 52px;
-            }
-            .header-title { font-size: 11px; letter-spacing: 0.02em; }
-            .logo-badge { font-size: 10px; padding: 5px 10px; }
-            .header-right span { display: none; }
-
-            .nav-bar { padding: 0 8px; }
-            .nav-tab {
-                padding: 0 14px;
-                font-size: 12px;
-                height: 44px;
-                gap: 5px;
-                flex: 1;
-                justify-content: center;
-            }
-
-            .container { padding: 14px 12px; }
-
-            .page-title { font-size: 18px; }
-            .page-subtitle { font-size: 13px; }
-
-            .section-card { padding: 14px; border-radius: var(--radius); }
-            .section-title { font-size: 12px; }
-            .section-icon { width: 28px; height: 28px; font-size: 13px; }
-
-            /* 1 coluna no mobile */
-            .form-grid { grid-template-columns: 1fr; gap: 12px; }
-            .form-grid.cols-3 { grid-template-columns: 1fr; }
-            .form-group.span-2 { grid-column: span 1; }
-
-            label { font-size: 11px; }
-
-            .services-grid { grid-template-columns: 1fr 1fr; gap: 6px; }
-            .service-label { font-size: 11px; padding: 8px 10px; }
-            .service-label::before { width: 14px; height: 14px; }
-
-            .radio-group { gap: 5px; }
-            .radio-pill label { padding: 6px 12px; font-size: 11px; }
-
-            .inspection-item { padding: 12px; }
-            .inspection-question { font-size: 12px; margin-bottom: 8px; }
-
-            .equipamento-card { padding: 12px; }
-            .equipamento-badge { font-size: 10px; }
-
-            .history-card {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 10px;
-                padding: 14px;
-            }
-            .history-client { font-size: 14px; }
-            .history-meta { font-size: 11px; gap: 6px; }
-            .meta-dot { display: none; }
-            .history-meta span { background: var(--bg-input); border-radius: 4px; padding: 2px 6px; }
-            .history-actions {
-                align-self: stretch;
-                display: flex;
-                gap: 8px;
-            }
-            .history-actions .btn { flex: 1; justify-content: center; font-size: 12px; }
-
-            .filters-bar { flex-direction: column; gap: 10px; }
-            .filter-group { min-width: 100%; }
-            .filters-bar .btn { align-self: stretch; justify-content: center; }
-
-            .btn-group {
-                flex-direction: column;
-                gap: 8px;
-                margin-bottom: 30px;
-            }
-            .btn-group .btn { width: 100%; justify-content: center; }
-
-            .signature-wrap { height: 150px; }
-
-            .photo-upload-area { padding: 12px; }
-            .photo-grid { grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 6px; }
-            .photo-item { width: 100%; height: 70px; }
-
-            .notification {
-                left: 16px;
-                right: 16px;
-                bottom: 16px;
-                max-width: none;
-            }
-
-            .divider { margin: 16px 0; }
-            .empty-state { padding: 32px 16px; }
-        }
-
-        /* ── MOBILE PEQUENO (≤ 360px) ── */
-        @media (max-width: 360px) {
-            header { padding: 0 10px; height: 50px; }
-            .header-title { display: none; }
-            .logo-badge { font-size: 10px; padding: 5px 8px; }
-            .header-right span { display: none; }
-
-            .nav-bar { padding: 0 4px; }
-            .nav-tab {
-                flex: 1;
-                justify-content: center;
-                padding: 0 8px;
-                font-size: 11px;
-                height: 42px;
-                gap: 4px;
-            }
-
-            .container { padding: 12px 10px; }
-            .page-title { font-size: 16px; }
-            .page-subtitle { font-size: 12px; margin-bottom: 16px; }
-
-            .section-card { padding: 12px; }
-            .form-grid { grid-template-columns: 1fr; gap: 10px; }
-            .form-group.span-2 { grid-column: span 1; }
-
-            .services-grid { grid-template-columns: 1fr; }
-            .service-label { font-size: 12px; }
-
-            .radio-pill label { padding: 6px 10px; font-size: 11px; }
-
-            .inspection-question { font-size: 12px; }
-
-            .btn-group { flex-direction: column; gap: 8px; }
-            .btn-group .btn { width: 100%; justify-content: center; }
-
-            .history-card { padding: 12px; }
-            .history-actions { flex-direction: column; gap: 6px; align-self: stretch; }
-            .history-actions .btn { width: 100%; justify-content: center; }
-
-            .filters-bar { flex-direction: column; }
-            .filter-group { min-width: 100%; }
-            .filters-bar .btn { width: 100%; justify-content: center; }
-
-            .notification { left: 10px; right: 10px; bottom: 10px; max-width: none; font-size: 12px; }
-        }
-
-        /* ── DESKTOP LARGO (≥ 1024px) ── */
-        @media (min-width: 1024px) {
-            .container { max-width: 860px; padding: 32px 24px; }
-            .form-grid { gap: 20px; }
-            .section-card { padding: 28px; }
-            .page-title { font-size: 28px; }
-            .services-grid { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
-        }
-    </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/signature_pad/1.5.3/signature_pad.min.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tiger Rentank — Atendimentos Externos</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════
+   TOKENS — DARK (padrão) e LIGHT
+═══════════════════════════════════════════ */
+:root {
+  --yellow:#FFCC00; --yellow-dark:#E6B800; --yellow-glow:rgba(255,204,0,0.22);
+  --orange:#FF9900;
+  --bg:#0F0F0F; --bg-card:#1A1A1A; --bg-input:#242424; --bg-section:#1E1E1E;
+  --border:#2E2E2E; --border-active:#3E3E3E;
+  --text:#F0F0F0; --text-muted:#888; --text-dim:#555;
+  --success:#22C55E; --danger:#EF4444; --warning:#F97316; --info:#3B82F6;
+  --radius:12px; --radius-sm:8px; --radius-lg:16px;
+  --shadow:0 4px 24px rgba(0,0,0,.4);
+}
+[data-theme="light"] {
+  --bg:#F4F4F5; --bg-card:#FFFFFF; --bg-input:#F9F9F9; --bg-section:#F1F1F1;
+  --border:#E4E4E7; --border-active:#D4D4D8;
+  --text:#18181B; --text-muted:#71717A; --text-dim:#A1A1AA;
+  --shadow:0 4px 24px rgba(0,0,0,.08);
+}
+
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;line-height:1.5;min-height:100vh;transition:background .25s,color .25s;}
+
+/* ── HEADER ── */
+header{background:var(--bg-card);border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;height:60px;position:sticky;top:0;z-index:200;backdrop-filter:blur(12px);}
+.logo-badge{background:var(--yellow);color:#111;font-family:'Syne',sans-serif;font-weight:800;font-size:11px;letter-spacing:.08em;padding:6px 12px;border-radius:6px;white-space:nowrap;}
+.header-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--text);letter-spacing:.03em;text-transform:uppercase;}
+.header-right{display:flex;align-items:center;gap:8px;}
+.theme-btn{background:none;border:1px solid var(--border);border-radius:8px;color:var(--text-muted);width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;transition:all .2s;}
+.theme-btn:hover{border-color:var(--yellow);color:var(--yellow);}
+
+/* ── PROGRESS BAR ── */
+.progress-bar-wrap{background:var(--bg-card);border-bottom:1px solid var(--border);padding:8px 20px;display:flex;align-items:center;gap:10px;}
+.progress-bar-track{flex:1;height:5px;background:var(--border);border-radius:100px;overflow:hidden;}
+.progress-bar-fill{height:100%;background:var(--yellow);border-radius:100px;transition:width .4s ease;}
+.progress-label{font-size:11px;font-weight:700;color:var(--yellow);font-family:'Syne',sans-serif;white-space:nowrap;min-width:36px;text-align:right;}
+.draft-badge{font-size:10px;color:var(--text-muted);background:var(--bg-input);border:1px solid var(--border);border-radius:100px;padding:2px 8px;white-space:nowrap;}
+
+/* ── NAV ── */
+.nav-bar{background:var(--bg-card);border-bottom:1px solid var(--border);padding:0 20px;display:flex;gap:2px;overflow-x:auto;}
+.nav-tab{display:flex;align-items:center;gap:7px;padding:0 18px;height:46px;font-family:'Syne',sans-serif;font-size:12px;font-weight:600;color:var(--text-muted);text-decoration:none;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap;letter-spacing:.04em;text-transform:uppercase;}
+.nav-tab:hover{color:var(--text);}
+.nav-tab.active{color:var(--yellow);border-bottom-color:var(--yellow);}
+
+/* ── LAYOUT ── */
+.container{max-width:900px;margin:0 auto;padding:20px 16px;}
+.tab-content{display:none;}
+.tab-content.active{display:block;}
+.page-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;margin-bottom:4px;}
+.page-subtitle{font-size:13px;color:var(--text-muted);margin-bottom:20px;}
+
+/* ── SECTION CARD ── */
+.section-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:22px;margin-bottom:14px;transition:border-color .2s;}
+.section-card:hover{border-color:var(--border-active);}
+.section-header{display:flex;align-items:center;gap:10px;margin-bottom:18px;}
+.section-icon{width:30px;height:30px;background:var(--yellow-glow);border:1px solid rgba(255,204,0,.3);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
+.section-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--yellow);letter-spacing:.06em;text-transform:uppercase;}
+
+/* ── FORM ── */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.form-group{display:flex;flex-direction:column;gap:5px;}
+.form-group.span-2{grid-column:span 2;}
+label{font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;}
+input[type=text],input[type=date],select,textarea{background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);padding:10px 13px;font-size:14px;font-family:'DM Sans',sans-serif;width:100%;transition:border-color .2s,box-shadow .2s;outline:none;}
+input:focus,select:focus,textarea:focus{border-color:var(--yellow);box-shadow:0 0 0 3px var(--yellow-glow);}
+textarea{resize:vertical;min-height:76px;}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 18px;border:none;border-radius:var(--radius-sm);font-family:'Syne',sans-serif;font-size:12px;font-weight:700;letter-spacing:.05em;cursor:pointer;transition:all .15s;text-transform:uppercase;white-space:nowrap;-webkit-tap-highlight-color:transparent;user-select:none;}
+.btn:active{transform:scale(.96);}
+.btn:disabled{opacity:.5;pointer-events:none;}
+.btn-primary{background:var(--yellow);color:#111;}
+.btn-primary:hover{background:var(--yellow-dark);box-shadow:0 4px 16px var(--yellow-glow);}
+.btn-success{background:var(--success);color:#fff;}
+.btn-success:hover{background:#16a34a;box-shadow:0 4px 16px rgba(34,197,94,.3);}
+.btn-danger{background:transparent;color:var(--danger);border:1px solid rgba(239,68,68,.3);}
+.btn-danger:hover{background:rgba(239,68,68,.1);border-color:var(--danger);}
+.btn-warning{background:transparent;color:var(--text-muted);border:1px solid var(--border);}
+.btn-warning:hover{background:var(--bg-input);color:var(--text);}
+.btn-ghost{background:transparent;color:var(--text-muted);border:1px solid var(--border);}
+.btn-ghost:hover{background:var(--bg-input);color:var(--text);}
+.btn-info{background:var(--info);color:#fff;}
+.btn-info:hover{background:#2563eb;}
+.btn-sm{padding:6px 12px;font-size:11px;border-radius:6px;}
+.btn-group{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;}
+
+/* ── RADIO PILLS ── */
+.radio-group{display:flex;gap:6px;flex-wrap:wrap;}
+.radio-pill{display:flex;align-items:center;}
+.radio-pill input[type=radio]{position:absolute;opacity:0;width:0;height:0;pointer-events:none;}
+.radio-pill label{padding:8px 16px;border-radius:100px;border:1.5px solid var(--border-active);color:var(--text-muted);cursor:pointer;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;transition:background .15s,color .15s,border-color .15s,transform .1s;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;display:inline-flex;align-items:center;gap:5px;}
+.radio-pill label:active{transform:scale(.93);}
+.radio-pill input:checked+label{background:var(--yellow);color:#111;border-color:var(--yellow);box-shadow:0 0 0 3px var(--yellow-glow);}
+.radio-pill.danger input:checked+label{background:var(--danger);color:#fff;border-color:var(--danger);box-shadow:0 0 0 3px rgba(239,68,68,.2);}
+.radio-pill.success input:checked+label{background:var(--success);color:#fff;border-color:var(--success);box-shadow:0 0 0 3px rgba(34,197,94,.2);}
+
+/* ── SERVICES ── */
+.services-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:7px;}
+.service-checkbox{display:none;}
+.service-label{display:flex;align-items:center;gap:8px;padding:10px 13px;background:var(--bg-section);border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;font-size:12px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;transition:all .15s;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;}
+.service-label::before{content:'';width:15px;height:15px;border:1.5px solid var(--border-active);border-radius:4px;flex-shrink:0;transition:all .15s;}
+.service-checkbox:checked+.service-label{background:rgba(255,204,0,.08);border-color:rgba(255,204,0,.4);color:var(--yellow);}
+.service-checkbox:checked+.service-label::before{background:var(--yellow);border-color:var(--yellow);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2 6l3 3 5-5' stroke='%23111' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-size:10px;background-position:center;background-repeat:no-repeat;}
+
+/* ── INSPECTION ── */
+.inspection-item{background:var(--bg-section);border:1px solid var(--border);border-radius:var(--radius-sm);padding:13px 15px;margin-bottom:7px;transition:border-color .2s;}
+.inspection-item:hover{border-color:var(--border-active);}
+.inspection-question{font-size:13px;color:var(--text);margin-bottom:9px;line-height:1.4;}
+
+/* ── EQUIPAMENTO ── */
+.equipamento-card{background:var(--bg-section);border:1px solid var(--border);border-radius:var(--radius-sm);padding:15px;margin-bottom:11px;}
+.equipamento-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:13px;}
+.equipamento-badge{background:var(--yellow-glow);border:1px solid rgba(255,204,0,.25);color:var(--yellow);font-family:'Syne',sans-serif;font-size:11px;font-weight:700;letter-spacing:.08em;padding:4px 10px;border-radius:6px;text-transform:uppercase;}
+
+/* ── SIGNATURE ── */
+.signature-wrap{border:1px solid var(--border);border-radius:var(--radius-sm);background:#fff;height:130px;position:relative;overflow:hidden;}
+.signature-wrap canvas{width:100%;height:100%;}
+
+/* ── PHOTO ── */
+.photo-upload-area{border:1.5px dashed var(--border-active);border-radius:var(--radius-sm);padding:14px;background:var(--bg-section);}
+.photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:7px;margin-top:11px;}
+.photo-item{width:100%;aspect-ratio:1;border-radius:8px;overflow:hidden;position:relative;border:1px solid var(--border);}
+.photo-item img{width:100%;height:100%;object-fit:cover;}
+.remove-photo{position:absolute;top:3px;right:3px;width:20px;height:20px;background:rgba(0,0,0,.7);color:#fff;border:none;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;}
+.remove-photo:hover{background:var(--danger);}
+.photo-count-badge{display:inline-flex;align-items:center;gap:4px;background:var(--bg-input);border:1px solid var(--border);border-radius:100px;padding:3px 10px;font-size:12px;color:var(--text-muted);margin-top:8px;}
+input[type=file]{display:none;}
+
+/* ── STATUS BADGE ── */
+.status-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:100px;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;}
+.status-badge::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor;}
+.badge-approved{background:rgba(34,197,94,.15);color:var(--success);}
+.badge-rejected{background:rgba(239,68,68,.15);color:var(--danger);}
+.badge-pending{background:rgba(249,115,22,.15);color:var(--warning);}
+
+/* ── HISTORY CARD ── */
+.history-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:15px;margin-bottom:9px;display:flex;align-items:center;gap:14px;transition:border-color .2s;}
+.history-card:hover{border-color:var(--border-active);}
+.history-info{flex:1;min-width:0;}
+.history-client{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.history-meta{font-size:11px;color:var(--text-muted);display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.meta-dot{color:var(--text-dim);}
+.history-actions{display:flex;gap:5px;flex-shrink:0;}
+
+/* ── FILTERS ── */
+.filters-bar{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:14px;align-items:flex-end;}
+.filter-group{display:flex;flex-direction:column;gap:4px;min-width:130px;}
+.filter-group label{font-size:11px;}
+.filter-group select,.filter-group input{padding:8px 11px;font-size:13px;}
+
+/* ── SEARCH INPUT ── */
+.search-wrap{position:relative;flex:1;min-width:180px;}
+.search-wrap input{padding-left:34px;}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:13px;pointer-events:none;}
+
+/* ── STORAGE INDICATOR ── */
+.storage-box{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:11px 14px;margin-bottom:14px;}
+
+/* ── NOTIFICATION ── */
+.notification{position:fixed;bottom:20px;right:20px;background:var(--bg-card);border:1px solid var(--border);border-left:3px solid var(--success);color:var(--text);padding:11px 18px;border-radius:var(--radius-sm);font-size:13px;font-weight:500;box-shadow:var(--shadow);z-index:999;transform:translateY(0);opacity:1;transition:all .3s;display:flex;align-items:center;gap:8px;max-width:320px;}
+.notification.hidden{opacity:0;transform:translateY(10px);pointer-events:none;}
+.notification.error{border-left-color:var(--danger);}
+
+/* ── DIVIDER ── */
+hr.divider{border:none;border-top:1px solid var(--border);margin:18px 0;}
+
+/* ── EMPTY STATE ── */
+.empty-state{text-align:center;padding:44px 20px;color:var(--text-muted);}
+.empty-state-icon{font-size:38px;margin-bottom:10px;opacity:.35;}
+
+/* ═══ MODAL — RESUMO ANTES DE SALVAR ═══ */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity .25s;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal-box{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg) var(--radius-lg) 0 0;width:100%;max-width:640px;max-height:85vh;overflow-y:auto;padding:24px 20px 32px;transform:translateY(40px);transition:transform .3s;}
+.modal-overlay.open .modal-box{transform:translateY(0);}
+.modal-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.modal-section{margin-bottom:14px;}
+.modal-section-title{font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;}
+.modal-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:13px;}
+.modal-row:last-child{border-bottom:none;}
+.modal-row span:first-child{color:var(--text-muted);}
+.modal-row span:last-child{font-weight:600;text-align:right;}
+.modal-insp-item{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px;}
+.modal-insp-item:last-child{border-bottom:none;}
+.modal-insp-q{color:var(--text-muted);flex:1;}
+.modal-insp-r{font-weight:700;white-space:nowrap;}
+.r-sim{color:var(--success);}
+.r-nao{color:var(--danger);}
+.r-na{color:var(--text-muted);}
+.r-nr{color:var(--warning);}
+.modal-footer{display:flex;gap:10px;margin-top:20px;position:sticky;bottom:0;background:var(--bg-card);padding-top:12px;}
+.modal-footer .btn{flex:1;justify-content:center;}
+
+/* ═══ DASHBOARD ═══ */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-bottom:18px;}
+.stat-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;text-align:center;}
+.stat-number{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:var(--yellow);line-height:1;}
+.stat-label{font-size:11px;color:var(--text-muted);margin-top:4px;text-transform:uppercase;letter-spacing:.05em;}
+.chart-bar-wrap{display:flex;flex-direction:column;gap:7px;}
+.chart-bar-row{display:flex;align-items:center;gap:10px;font-size:12px;}
+.chart-bar-label{width:110px;color:var(--text-muted);text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.chart-bar-track{flex:1;height:20px;background:var(--bg-section);border-radius:4px;overflow:hidden;}
+.chart-bar-fill{height:100%;border-radius:4px;display:flex;align-items:center;justify-content:flex-end;padding-right:6px;font-size:10px;font-weight:700;color:#111;transition:width .5s ease;}
+.chart-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em;}
+.donut-wrap{display:flex;align-items:center;gap:20px;flex-wrap:wrap;}
+.donut-legend{display:flex;flex-direction:column;gap:6px;}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:12px;}
+.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+
+/* ═══ RESPONSIVE ═══ */
+@media (pointer:coarse){
+  .btn{min-height:44px;}
+  .radio-pill label{min-height:40px;display:flex;align-items:center;}
+  .service-label{min-height:44px;}
+  input,select,textarea{min-height:44px;font-size:16px!important;}
+  .nav-tab{min-height:46px;}
+}
+@media (max-width:768px){
+  .form-grid{grid-template-columns:1fr;}
+  .form-group.span-2{grid-column:span 1;}
+  .history-card{flex-direction:column;align-items:flex-start;gap:10px;}
+  .history-actions{align-self:stretch;display:flex;}
+  .history-actions .btn{flex:1;justify-content:center;}
+  .filters-bar{flex-direction:column;}
+  .filter-group{min-width:100%;}
+  .search-wrap{min-width:100%;}
+  .filters-bar .btn{width:100%;justify-content:center;}
+  .btn-group{flex-direction:column;gap:8px;}
+  .btn-group .btn{width:100%;justify-content:center;}
+  .stats-grid{grid-template-columns:1fr 1fr;}
+  .modal-box{padding:18px 15px 28px;}
+  .modal-footer{flex-direction:column;}
+  .notification{left:12px;right:12px;bottom:12px;max-width:none;}
+  header{padding:0 14px;height:52px;}
+  .header-title{font-size:11px;}
+  .nav-bar{padding:0 10px;}
+  .nav-tab{padding:0 12px;font-size:11px;flex:1;justify-content:center;}
+  .container{padding:14px 11px;}
+}
+@media (min-width:1024px){
+  .container{max-width:860px;padding:28px 20px;}
+  .section-card{padding:26px;}
+  .page-title{font-size:26px;}
+}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/signature_pad/1.5.3/signature_pad.min.js"></script>
 </head>
 <body>
 
+<!-- NOTIFICATION -->
 <div class="notification hidden" id="notification">
-    <span id="notif-icon">✓</span>
-    <span id="notif-text">Checklist registrado!</span>
+  <span id="notif-icon">✓</span>
+  <span id="notif-text">OK</span>
 </div>
 
-<header>
-    <div class="logo-badge">Tiger Rentank</div>
-    <div class="header-title">Atendimentos Externos</div>
-    <div class="header-right">
-        <div style="width:8px;height:8px;background:var(--success);border-radius:50%;box-shadow:0 0 6px var(--success);"></div>
-        <span style="font-size:12px;color:var(--text-muted);">Online</span>
+<!-- MODAL RESUMO -->
+<div class="modal-overlay" id="modal-resumo">
+  <div class="modal-box">
+    <div class="modal-title">📋 Confirmar Atendimento</div>
+    <div id="modal-content"></div>
+    <div class="modal-footer">
+      <button class="btn btn-warning" id="modal-cancelar">← Voltar</button>
+      <button class="btn btn-success" id="modal-confirmar">💾 Confirmar e Salvar</button>
     </div>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header>
+  <div class="logo-badge">Tiger Rentank</div>
+  <div class="header-title">Atendimentos Externos</div>
+  <div class="header-right">
+    <button class="theme-btn" id="theme-toggle" title="Alternar tema">🌙</button>
+    <div style="width:8px;height:8px;background:var(--success);border-radius:50%;box-shadow:0 0 6px var(--success);"></div>
+  </div>
 </header>
 
+<!-- PROGRESS BAR (só aparece na aba checklist) -->
+<div class="progress-bar-wrap" id="progress-wrap">
+  <div class="progress-bar-track">
+    <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+  </div>
+  <span class="progress-label" id="progress-label">0%</span>
+  <span class="draft-badge" id="draft-status">Rascunho</span>
+</div>
+
+<!-- NAV -->
 <div class="nav-bar">
-    <a href="#" class="nav-tab active" data-tab="checklist">
-        <span>📋</span> Checklist
-    </a>
-    <a href="#" class="nav-tab" data-tab="historico">
-        <span>📂</span> Histórico
-    </a>
+  <a href="#" class="nav-tab active" data-tab="checklist"><span>📋</span> Checklist</a>
+  <a href="#" class="nav-tab" data-tab="historico"><span>📂</span> Histórico</a>
+  <a href="#" class="nav-tab" data-tab="dashboard"><span>📊</span> Dashboard</a>
 </div>
 
 <div class="container">
 
-    <!-- ═══ CHECKLIST TAB ═══ -->
-    <div id="checklist" class="tab-content active">
-        <h1 class="page-title">Novo Atendimento</h1>
-        <p class="page-subtitle">Preencha todos os campos obrigatórios para registrar o atendimento externo.</p>
+<!-- ═══ TAB: CHECKLIST ═══ -->
+<div id="checklist" class="tab-content active">
+  <h1 class="page-title">Novo Atendimento</h1>
+  <p class="page-subtitle">Preencha os campos obrigatórios (*) para registrar o atendimento.</p>
 
-        <!-- DADOS DO ATENDIMENTO -->
-        <div class="section-card">
-            <div class="section-header">
-                <div class="section-icon">👤</div>
-                <h3 class="section-title">Dados do Atendimento</h3>
-            </div>
-
-            <div class="form-grid">
-                <div class="form-group">
-                    <label for="inspetor1">Inspeção Tiger 1 *</label>
-                    <input type="text" id="inspetor1" placeholder="Nome do colaborador">
-                </div>
-                <div class="form-group">
-                    <label for="inspetor2">Inspeção Tiger 2</label>
-                    <input type="text" id="inspetor2" placeholder="Nome do segundo colaborador">
-                </div>
-                <div class="form-group">
-                    <label for="data-atendimento">Data do Atendimento *</label>
-                    <input type="date" id="data-atendimento">
-                </div>
-                <div class="form-group">
-                    <label for="veiculo-placa">Veículo / Placa *</label>
-                    <input type="text" id="veiculo-placa" placeholder="Ex: ABC-1234">
-                </div>
-                <div class="form-group span-2">
-                    <label for="cliente">Cliente *</label>
-                    <input type="text" id="cliente" placeholder="Nome completo do cliente">
-                </div>
-            </div>
-        </div>
-
-        <!-- EQUIPAMENTOS -->
-        <div class="section-card">
-            <div class="section-header">
-                <div class="section-icon">🔧</div>
-                <h3 class="section-title">Equipamentos</h3>
-            </div>
-
-            <div id="equipamentos-container"></div>
-
-            <button type="button" class="btn btn-ghost" id="add-equipamento">
-                <span>+</span> Adicionar Equipamento
-            </button>
-        </div>
-
-        <!-- SERVIÇOS REALIZADOS -->
-        <div class="section-card">
-            <div class="section-header">
-                <div class="section-icon">⚙️</div>
-                <h3 class="section-title">Serviço Realizado</h3>
-            </div>
-
-            <div class="services-grid">
-                <input type="checkbox" class="service-checkbox" id="cert-visual" name="servicos" value="CERTIFICAÇÃO VISUAL">
-                <label class="service-label" for="cert-visual">Cert. Visual</label>
-
-                <input type="checkbox" class="service-checkbox" id="cert-remota" name="servicos" value="CERTIFICAÇÃO REMOTA">
-                <label class="service-label" for="cert-remota">Cert. Remota</label>
-
-                <input type="checkbox" class="service-checkbox" id="particula-magnetica" name="servicos" value="PARTÍCULA MAGNÉTICA">
-                <label class="service-label" for="particula-magnetica">Partícula Magnética</label>
-
-                <input type="checkbox" class="service-checkbox" id="liquido-penetrante" name="servicos" value="LÍQUIDO PENETRANTE">
-                <label class="service-label" for="liquido-penetrante">Líquido Penetrante</label>
-
-                <input type="checkbox" class="service-checkbox" id="corrente-parasita" name="servicos" value="CORRENTE PARASITA">
-                <label class="service-label" for="corrente-parasita">Corrente Parasita</label>
-
-                <input type="checkbox" class="service-checkbox" id="manut-preventiva" name="servicos" value="MANUTENÇÃO PREVENTIVA">
-                <label class="service-label" for="manut-preventiva">Manutenção Preventiva</label>
-
-                <input type="checkbox" class="service-checkbox" id="manut-corretiva" name="servicos" value="MANUTENÇÃO CORRETIVA">
-                <label class="service-label" for="manut-corretiva">Manutenção Corretiva</label>
-
-                <input type="checkbox" class="service-checkbox" id="instalacao-gps" name="servicos" value="INSTALAÇÃO DE GPS">
-                <label class="service-label" for="instalacao-gps">Instalação de GPS</label>
-
-                <input type="checkbox" class="service-checkbox" id="substituicao-eslinga" name="servicos" value="SUBSTITUIÇÃO DE ESLINGA">
-                <label class="service-label" for="substituicao-eslinga">Subst. Eslinga</label>
-
-                <input type="checkbox" class="service-checkbox" id="avaliacao-tecnica" name="servicos" value="AVALIAÇÃO TÉCNICA">
-                <label class="service-label" for="avaliacao-tecnica">Avaliação Técnica</label>
-            </div>
-        </div>
-
-        <!-- INSPEÇÃO -->
-        <div class="section-card">
-            <div class="section-header">
-                <div class="section-icon">🔍</div>
-                <h3 class="section-title">Inspeção</h3>
-            </div>
-
-            <div id="inspecao-itens">
-
-                <div class="inspection-item">
-                    <p class="inspection-question">As datas de vencimento dos testes do equipamento estão superiores a 120 dias do vencimento?</p>
-                    <div class="radio-group">
-                        <div class="radio-pill success">
-                            <input type="radio" id="vencimento-120-sim" name="vencimento-120" value="SIM">
-                            <label for="vencimento-120-sim">SIM</label>
-                        </div>
-                        <div class="radio-pill danger">
-                            <input type="radio" id="vencimento-120-nao" name="vencimento-120" value="NÃO">
-                            <label for="vencimento-120-nao">NÃO</label>
-                        </div>
-                        <div class="radio-pill">
-                            <input type="radio" id="vencimento-120-na" name="vencimento-120" value="N/A">
-                            <label for="vencimento-120-na">N/A</label>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="inspection-item">
-                    <p class="inspection-question">O equipamento está em bom estado, livre de danos na pintura refletiva, deformação ou corrosão excessiva, rasgos e trincas?</p>
-                    <div class="radio-group">
-                        <div class="radio-pill success"><input type="radio" id="bom-estado-sim" name="bom-estado" value="SIM"><label for="bom-estado-sim">SIM</label></div>
-                        <div class="radio-pill danger"><input type="radio" id="bom-estado-nao" name="bom-estado" value="NÃO"><label for="bom-estado-nao">NÃO</label></div>
-                        <div class="radio-pill"><input type="radio" id="bom-estado-na" name="bom-estado" value="N/A"><label for="bom-estado-na">N/A</label></div>
-                    </div>
-                </div>
-
-                <div class="inspection-item">
-                    <p class="inspection-question">Os equipamentos encontram-se livres de objetos soltos e corrosões?</p>
-                    <div class="radio-group">
-                        <div class="radio-pill success"><input type="radio" id="livre-objetos-sim" name="livre-objetos" value="SIM"><label for="livre-objetos-sim">SIM</label></div>
-                        <div class="radio-pill danger"><input type="radio" id="livre-objetos-nao" name="livre-objetos" value="NÃO"><label for="livre-objetos-nao">NÃO</label></div>
-                        <div class="radio-pill"><input type="radio" id="livre-objetos-na" name="livre-objetos" value="N/A"><label for="livre-objetos-na">N/A</label></div>
-                    </div>
-                </div>
-
-                <div class="inspection-item">
-                    <p class="inspection-question">As portas, tampas, dobradiças, pinos de segurança e borrachas de vedação, estão em bom estado e funcionamento?</p>
-                    <div class="radio-group">
-                        <div class="radio-pill success"><input type="radio" id="portas-sim" name="portas" value="SIM"><label for="portas-sim">SIM</label></div>
-                        <div class="radio-pill danger"><input type="radio" id="portas-nao" name="portas" value="NÃO"><label for="portas-nao">NÃO</label></div>
-                        <div class="radio-pill"><input type="radio" id="portas-na" name="portas" value="N/A"><label for="portas-na">N/A</label></div>
-                    </div>
-                </div>
-
-                <div class="inspection-item">
-                    <p class="inspection-question">Os anéis "D" de amarração estão conformes, livres de corrosão em excesso, deformações ou pontos de ruptura?</p>
-                    <div class="radio-group">
-                        <div class="radio-pill success"><input type="radio" id="aneis-d-sim" name="aneis-d" value="SIM"><label for="aneis-d-sim">SIM</label></div>
-                        <div class="radio-pill danger"><input type="radio" id="aneis-d-nao" name="aneis-d" value="NÃO"><label for="aneis-d-nao">NÃO</label></div>
-                        <div class="radio-pill"><input type="radio" id="aneis-d-na" name="aneis-d" value="N/A"><label for="aneis-d-na">N/A</label></div>
-                    </div>
-                </div>
-
-                <div class="inspection-item">
-                    <p class="inspection-question">As bolsas de empilhadeira estão conformes, livres de corrosão em excesso e deformações?</p>
-                    <div class="radio-group">
-                        <div class="radio-pill success"><input type="radio" id="bolsas-sim" name="bolsas" value="SIM"><label for="bolsas-sim">SIM</label></div>
-                        <div class="radio-pill danger"><input type="radio" id="bolsas-nao" name="bolsas" value="NÃO"><label for="bolsas-nao">NÃO</label></div>
-                        <div class="radio-pill"><input type="radio" id="bolsas-na" name="bolsas" value="N/A"><label for="bolsas-na">N/A</label></div>
-                    </div>
-                </div>
-
-                <div class="inspection-item">
-                    <p class="inspection-question">As placas de identificação dos equipamentos estão em bom estado e com as marcações legíveis?</p>
-                    <div class="radio-group">
-                        <div class="radio-pill success"><input type="radio" id="placas-sim" name="placas" value="SIM"><label for="placas-sim">SIM</label></div>
-                        <div class="radio-pill danger"><input type="radio" id="placas-nao" name="placas" value="NÃO"><label for="placas-nao">NÃO</label></div>
-                        <div class="radio-pill"><input type="radio" id="placas-na" name="placas" value="N/A"><label for="placas-na">N/A</label></div>
-                    </div>
-                </div>
-
-                <div class="inspection-item">
-                    <p class="inspection-question">As datas de vencimento dos testes da eslinga estão superiores a 150 dias?</p>
-                    <div class="radio-group">
-                        <div class="radio-pill success"><input type="radio" id="eslinga-150-sim" name="eslinga-150" value="SIM"><label for="eslinga-150-sim">SIM</label></div>
-                        <div class="radio-pill danger"><input type="radio" id="eslinga-150-nao" name="eslinga-150" value="NÃO"><label for="eslinga-150-nao">NÃO</label></div>
-                        <div class="radio-pill"><input type="radio" id="eslinga-150-na" name="eslinga-150" value="N/A"><label for="eslinga-150-na">N/A</label></div>
-                    </div>
-                </div>
-
-                <div class="inspection-item">
-                    <p class="inspection-question">A eslinga está com o cabo lubrificado? Anéis, sapatilhos e punhos estão pintados?</p>
-                    <div class="radio-group">
-                        <div class="radio-pill success"><input type="radio" id="eslinga-lubrificada-sim" name="eslinga-lubrificada" value="SIM"><label for="eslinga-lubrificada-sim">SIM</label></div>
-                        <div class="radio-pill danger"><input type="radio" id="eslinga-lubrificada-nao" name="eslinga-lubrificada" value="NÃO"><label for="eslinga-lubrificada-nao">NÃO</label></div>
-                        <div class="radio-pill"><input type="radio" id="eslinga-lubrificada-na" name="eslinga-lubrificada" value="N/A"><label for="eslinga-lubrificada-na">N/A</label></div>
-                    </div>
-                </div>
-
-                <div class="inspection-item">
-                    <p class="inspection-question">A eslinga está livre de avarias (sapatilho amassado, fio rompido, deformação excessiva, alma exposta etc...)?</p>
-                    <div class="radio-group">
-                        <div class="radio-pill success"><input type="radio" id="eslinga-avarias-sim" name="eslinga-avarias" value="SIM"><label for="eslinga-avarias-sim">SIM</label></div>
-                        <div class="radio-pill danger"><input type="radio" id="eslinga-avarias-nao" name="eslinga-avarias" value="NÃO"><label for="eslinga-avarias-nao">NÃO</label></div>
-                        <div class="radio-pill"><input type="radio" id="eslinga-avarias-na" name="eslinga-avarias" value="N/A"><label for="eslinga-avarias-na">N/A</label></div>
-                    </div>
-                </div>
-
-                <div class="inspection-item">
-                    <p class="inspection-question">Todas as manilhas estão com contra-pinos?</p>
-                    <div class="radio-group">
-                        <div class="radio-pill success"><input type="radio" id="manilhas-sim" name="manilhas" value="SIM"><label for="manilhas-sim">SIM</label></div>
-                        <div class="radio-pill danger"><input type="radio" id="manilhas-nao" name="manilhas" value="NÃO"><label for="manilhas-nao">NÃO</label></div>
-                        <div class="radio-pill"><input type="radio" id="manilhas-na" name="manilhas" value="N/A"><label for="manilhas-na">N/A</label></div>
-                    </div>
-                </div>
-
-                <div class="inspection-item">
-                    <p class="inspection-question">Equipamento e eslinga estão de acordo com o color code do cliente?</p>
-                    <div class="radio-group">
-                        <div class="radio-pill success"><input type="radio" id="color-code-sim" name="color-code" value="SIM"><label for="color-code-sim">SIM</label></div>
-                        <div class="radio-pill danger"><input type="radio" id="color-code-nao" name="color-code" value="NÃO"><label for="color-code-nao">NÃO</label></div>
-                        <div class="radio-pill"><input type="radio" id="color-code-na" name="color-code" value="N/A"><label for="color-code-na">N/A</label></div>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-
-        <!-- FINALIZAÇÃO -->
-        <div class="section-card">
-            <div class="section-header">
-                <div class="section-icon">✅</div>
-                <h3 class="section-title">Observações e Finalização</h3>
-            </div>
-
-            <div class="form-group" style="margin-bottom:16px;">
-                <label for="observacoes">Observações</label>
-                <textarea id="observacoes" placeholder="Digite aqui as observações relevantes..."></textarea>
-            </div>
-
-            <div class="form-group" style="margin-bottom:20px;">
-                <label>Status da Inspeção</label>
-                <div class="radio-group" style="margin-top:4px;">
-                    <div class="radio-pill success">
-                        <input type="radio" id="status-aprovado" name="status" value="APROVADO">
-                        <label for="status-aprovado">✓ Aprovado</label>
-                    </div>
-                    <div class="radio-pill danger">
-                        <input type="radio" id="status-reprovado" name="status" value="REPROVADO">
-                        <label for="status-reprovado">✕ Reprovado</label>
-                    </div>
-                    <div class="radio-pill">
-                        <input type="radio" id="status-pendente" name="status" value="PENDENTE">
-                        <label for="status-pendente">⏳ Pendente</label>
-                    </div>
-                </div>
-            </div>
-
-            <hr class="divider">
-
-            <div class="form-group" style="margin-bottom:20px;">
-                <label>Imagens do Atendimento</label>
-                <div class="photo-upload-area">
-                    <input type="file" id="foto" accept="image/*" capture="environment" multiple>
-                    <label for="foto" class="btn btn-ghost" style="cursor:pointer; display:inline-flex; align-items:center; gap:8px;">
-                        <span>📷</span> Selecionar / Tirar Foto
-                    </label>
-                    <div class="photo-count-badge" id="photo-count">
-                        <span>📁</span> 0 fotos selecionadas
-                    </div>
-                    <div class="photo-grid" id="fotos"></div>
-                </div>
-            </div>
-
-            <hr class="divider">
-
-            <div class="form-group">
-                <label>Assinatura do Responsável</label>
-                <div class="signature-wrap" id="signature">
-                    <canvas id="signature-canvas"></canvas>
-                </div>
-                <div style="margin-top:8px;">
-                    <button type="button" class="btn btn-ghost btn-sm" id="clear-signature">✕ Limpar Assinatura</button>
-                </div>
-            </div>
-        </div>
-
-        <div class="btn-group" style="margin-bottom: 40px;">
-            <button type="button" class="btn btn-success" id="salvar">
-                <span>💾</span> Salvar Checklist
-            </button>
-            <button type="button" class="btn btn-warning" id="limpar">
-                <span>↺</span> Limpar Formulário
-            </button>
-        </div>
+  <!-- DADOS -->
+  <div class="section-card">
+    <div class="section-header"><div class="section-icon">👤</div><h3 class="section-title">Dados do Atendimento</h3></div>
+    <div class="form-grid">
+      <div class="form-group"><label for="inspetor1">Inspeção Tiger 1 *</label><input type="text" id="inspetor1" placeholder="Nome do colaborador"></div>
+      <div class="form-group"><label for="inspetor2">Inspeção Tiger 2</label><input type="text" id="inspetor2" placeholder="Nome do segundo colaborador"></div>
+      <div class="form-group"><label for="data-atendimento">Data *</label><input type="date" id="data-atendimento"></div>
+      <div class="form-group"><label for="veiculo-placa">Veículo / Placa *</label><input type="text" id="veiculo-placa" placeholder="Ex: ABC-1234"></div>
+      <div class="form-group span-2"><label for="cliente">Cliente *</label><input type="text" id="cliente" placeholder="Nome completo do cliente"></div>
     </div>
+  </div>
 
-    <!-- ═══ HISTÓRICO TAB ═══ -->
-    <div id="historico" class="tab-content">
-        <h1 class="page-title">Histórico</h1>
-        <p class="page-subtitle">Consulte e gerencie os atendimentos anteriores.</p>
-        <div id="storage-indicator" style="margin-bottom:16px;"></div>
+  <!-- EQUIPAMENTOS -->
+  <div class="section-card">
+    <div class="section-header"><div class="section-icon">🔧</div><h3 class="section-title">Equipamentos</h3></div>
+    <div id="equipamentos-container"></div>
+    <button type="button" class="btn btn-ghost" id="add-equipamento"><span>+</span> Adicionar Equipamento</button>
+  </div>
 
-        <div class="filters-bar">
-            <div class="filter-group">
-                <label for="filter-status">Status</label>
-                <select id="filter-status">
-                    <option value="all">Todos</option>
-                    <option value="APROVADO">Aprovado</option>
-                    <option value="REPROVADO">Reprovado</option>
-                    <option value="PENDENTE">Pendente</option>
-                </select>
-            </div>
-            <div class="filter-group">
-                <label for="filter-date">Data</label>
-                <input type="date" id="filter-date">
-            </div>
-            <button type="button" class="btn btn-primary btn-sm" id="apply-filters" style="align-self:flex-end;">
-                Aplicar
-            </button>
-            <button type="button" class="btn btn-danger btn-sm" id="clear-all-data" style="align-self:flex-end;">
-                🗑 Limpar Tudo
-            </button>
-        </div>
-
-        <div id="history-list"></div>
+  <!-- SERVIÇOS -->
+  <div class="section-card">
+    <div class="section-header"><div class="section-icon">⚙️</div><h3 class="section-title">Serviço Realizado</h3></div>
+    <div class="services-grid">
+      <input type="checkbox" class="service-checkbox" id="cert-visual" name="servicos" value="CERTIFICAÇÃO VISUAL"><label class="service-label" for="cert-visual">Cert. Visual</label>
+      <input type="checkbox" class="service-checkbox" id="cert-remota" name="servicos" value="CERTIFICAÇÃO REMOTA"><label class="service-label" for="cert-remota">Cert. Remota</label>
+      <input type="checkbox" class="service-checkbox" id="particula-magnetica" name="servicos" value="PARTÍCULA MAGNÉTICA"><label class="service-label" for="particula-magnetica">Partícula Magnética</label>
+      <input type="checkbox" class="service-checkbox" id="liquido-penetrante" name="servicos" value="LÍQUIDO PENETRANTE"><label class="service-label" for="liquido-penetrante">Líquido Penetrante</label>
+      <input type="checkbox" class="service-checkbox" id="corrente-parasita" name="servicos" value="CORRENTE PARASITA"><label class="service-label" for="corrente-parasita">Corrente Parasita</label>
+      <input type="checkbox" class="service-checkbox" id="manut-preventiva" name="servicos" value="MANUTENÇÃO PREVENTIVA"><label class="service-label" for="manut-preventiva">Manut. Preventiva</label>
+      <input type="checkbox" class="service-checkbox" id="manut-corretiva" name="servicos" value="MANUTENÇÃO CORRETIVA"><label class="service-label" for="manut-corretiva">Manut. Corretiva</label>
+      <input type="checkbox" class="service-checkbox" id="instalacao-gps" name="servicos" value="INSTALAÇÃO DE GPS"><label class="service-label" for="instalacao-gps">Instalação GPS</label>
+      <input type="checkbox" class="service-checkbox" id="substituicao-eslinga" name="servicos" value="SUBSTITUIÇÃO DE ESLINGA"><label class="service-label" for="substituicao-eslinga">Subst. Eslinga</label>
+      <input type="checkbox" class="service-checkbox" id="avaliacao-tecnica" name="servicos" value="AVALIAÇÃO TÉCNICA"><label class="service-label" for="avaliacao-tecnica">Avaliação Técnica</label>
     </div>
+  </div>
 
+  <!-- INSPEÇÃO -->
+  <div class="section-card">
+    <div class="section-header"><div class="section-icon">🔍</div><h3 class="section-title">Inspeção</h3></div>
+    <div id="inspecao-itens">
+      <div class="inspection-item"><p class="inspection-question">As datas de vencimento dos testes do equipamento estão superiores a 120 dias do vencimento?</p><div class="radio-group"><div class="radio-pill success"><input type="radio" id="vencimento-120-sim" name="vencimento-120" value="SIM"><label for="vencimento-120-sim">SIM</label></div><div class="radio-pill danger"><input type="radio" id="vencimento-120-nao" name="vencimento-120" value="NÃO"><label for="vencimento-120-nao">NÃO</label></div><div class="radio-pill"><input type="radio" id="vencimento-120-na" name="vencimento-120" value="N/A"><label for="vencimento-120-na">N/A</label></div></div></div>
+      <div class="inspection-item"><p class="inspection-question">O equipamento está em bom estado, livre de danos na pintura refletiva, deformação ou corrosão excessiva, rasgos e trincas?</p><div class="radio-group"><div class="radio-pill success"><input type="radio" id="bom-estado-sim" name="bom-estado" value="SIM"><label for="bom-estado-sim">SIM</label></div><div class="radio-pill danger"><input type="radio" id="bom-estado-nao" name="bom-estado" value="NÃO"><label for="bom-estado-nao">NÃO</label></div><div class="radio-pill"><input type="radio" id="bom-estado-na" name="bom-estado" value="N/A"><label for="bom-estado-na">N/A</label></div></div></div>
+      <div class="inspection-item"><p class="inspection-question">Os equipamentos encontram-se livres de objetos soltos e corrosões?</p><div class="radio-group"><div class="radio-pill success"><input type="radio" id="livre-objetos-sim" name="livre-objetos" value="SIM"><label for="livre-objetos-sim">SIM</label></div><div class="radio-pill danger"><input type="radio" id="livre-objetos-nao" name="livre-objetos" value="NÃO"><label for="livre-objetos-nao">NÃO</label></div><div class="radio-pill"><input type="radio" id="livre-objetos-na" name="livre-objetos" value="N/A"><label for="livre-objetos-na">N/A</label></div></div></div>
+      <div class="inspection-item"><p class="inspection-question">As portas, tampas, dobradiças, pinos de segurança e borrachas de vedação, estão em bom estado e funcionamento?</p><div class="radio-group"><div class="radio-pill success"><input type="radio" id="portas-sim" name="portas" value="SIM"><label for="portas-sim">SIM</label></div><div class="radio-pill danger"><input type="radio" id="portas-nao" name="portas" value="NÃO"><label for="portas-nao">NÃO</label></div><div class="radio-pill"><input type="radio" id="portas-na" name="portas" value="N/A"><label for="portas-na">N/A</label></div></div></div>
+      <div class="inspection-item"><p class="inspection-question">Os anéis "D" de amarração estão conformes, livres de corrosão em excesso, deformações ou pontos de ruptura?</p><div class="radio-group"><div class="radio-pill success"><input type="radio" id="aneis-d-sim" name="aneis-d" value="SIM"><label for="aneis-d-sim">SIM</label></div><div class="radio-pill danger"><input type="radio" id="aneis-d-nao" name="aneis-d" value="NÃO"><label for="aneis-d-nao">NÃO</label></div><div class="radio-pill"><input type="radio" id="aneis-d-na" name="aneis-d" value="N/A"><label for="aneis-d-na">N/A</label></div></div></div>
+      <div class="inspection-item"><p class="inspection-question">As bolsas de empilhadeira estão conformes, livres de corrosão em excesso e deformações?</p><div class="radio-group"><div class="radio-pill success"><input type="radio" id="bolsas-sim" name="bolsas" value="SIM"><label for="bolsas-sim">SIM</label></div><div class="radio-pill danger"><input type="radio" id="bolsas-nao" name="bolsas" value="NÃO"><label for="bolsas-nao">NÃO</label></div><div class="radio-pill"><input type="radio" id="bolsas-na" name="bolsas" value="N/A"><label for="bolsas-na">N/A</label></div></div></div>
+      <div class="inspection-item"><p class="inspection-question">As placas de identificação dos equipamentos estão em bom estado e com as marcações legíveis?</p><div class="radio-group"><div class="radio-pill success"><input type="radio" id="placas-sim" name="placas" value="SIM"><label for="placas-sim">SIM</label></div><div class="radio-pill danger"><input type="radio" id="placas-nao" name="placas" value="NÃO"><label for="placas-nao">NÃO</label></div><div class="radio-pill"><input type="radio" id="placas-na" name="placas" value="N/A"><label for="placas-na">N/A</label></div></div></div>
+      <div class="inspection-item"><p class="inspection-question">As datas de vencimento dos testes da eslinga estão superiores a 150 dias?</p><div class="radio-group"><div class="radio-pill success"><input type="radio" id="eslinga-150-sim" name="eslinga-150" value="SIM"><label for="eslinga-150-sim">SIM</label></div><div class="radio-pill danger"><input type="radio" id="eslinga-150-nao" name="eslinga-150" value="NÃO"><label for="eslinga-150-nao">NÃO</label></div><div class="radio-pill"><input type="radio" id="eslinga-150-na" name="eslinga-150" value="N/A"><label for="eslinga-150-na">N/A</label></div></div></div>
+      <div class="inspection-item"><p class="inspection-question">A eslinga está com o cabo lubrificado? Anéis, sapatilhos e punhos estão pintados?</p><div class="radio-group"><div class="radio-pill success"><input type="radio" id="eslinga-lubrificada-sim" name="eslinga-lubrificada" value="SIM"><label for="eslinga-lubrificada-sim">SIM</label></div><div class="radio-pill danger"><input type="radio" id="eslinga-lubrificada-nao" name="eslinga-lubrificada" value="NÃO"><label for="eslinga-lubrificada-nao">NÃO</label></div><div class="radio-pill"><input type="radio" id="eslinga-lubrificada-na" name="eslinga-lubrificada" value="N/A"><label for="eslinga-lubrificada-na">N/A</label></div></div></div>
+      <div class="inspection-item"><p class="inspection-question">A eslinga está livre de avarias (sapatilho amassado, fio rompido, deformação excessiva, alma exposta etc...)?</p><div class="radio-group"><div class="radio-pill success"><input type="radio" id="eslinga-avarias-sim" name="eslinga-avarias" value="SIM"><label for="eslinga-avarias-sim">SIM</label></div><div class="radio-pill danger"><input type="radio" id="eslinga-avarias-nao" name="eslinga-avarias" value="NÃO"><label for="eslinga-avarias-nao">NÃO</label></div><div class="radio-pill"><input type="radio" id="eslinga-avarias-na" name="eslinga-avarias" value="N/A"><label for="eslinga-avarias-na">N/A</label></div></div></div>
+      <div class="inspection-item"><p class="inspection-question">Todas as manilhas estão com contra-pinos?</p><div class="radio-group"><div class="radio-pill success"><input type="radio" id="manilhas-sim" name="manilhas" value="SIM"><label for="manilhas-sim">SIM</label></div><div class="radio-pill danger"><input type="radio" id="manilhas-nao" name="manilhas" value="NÃO"><label for="manilhas-nao">NÃO</label></div><div class="radio-pill"><input type="radio" id="manilhas-na" name="manilhas" value="N/A"><label for="manilhas-na">N/A</label></div></div></div>
+      <div class="inspection-item"><p class="inspection-question">Equipamento e eslinga estão de acordo com o color code do cliente?</p><div class="radio-group"><div class="radio-pill success"><input type="radio" id="color-code-sim" name="color-code" value="SIM"><label for="color-code-sim">SIM</label></div><div class="radio-pill danger"><input type="radio" id="color-code-nao" name="color-code" value="NÃO"><label for="color-code-nao">NÃO</label></div><div class="radio-pill"><input type="radio" id="color-code-na" name="color-code" value="N/A"><label for="color-code-na">N/A</label></div></div></div>
+    </div>
+  </div>
+
+  <!-- FINALIZAÇÃO -->
+  <div class="section-card">
+    <div class="section-header"><div class="section-icon">✅</div><h3 class="section-title">Observações e Finalização</h3></div>
+    <div class="form-group" style="margin-bottom:16px;"><label for="observacoes">Observações</label><textarea id="observacoes" placeholder="Digite observações relevantes..."></textarea></div>
+    <div class="form-group" style="margin-bottom:18px;">
+      <label>Status da Inspeção</label>
+      <div class="radio-group" style="margin-top:4px;">
+        <div class="radio-pill success"><input type="radio" id="status-aprovado" name="status" value="APROVADO"><label for="status-aprovado">✓ Aprovado</label></div>
+        <div class="radio-pill danger"><input type="radio" id="status-reprovado" name="status" value="REPROVADO"><label for="status-reprovado">✕ Reprovado</label></div>
+        <div class="radio-pill"><input type="radio" id="status-pendente" name="status" value="PENDENTE"><label for="status-pendente">⏳ Pendente</label></div>
+      </div>
+    </div>
+    <hr class="divider">
+    <!-- FOTOS -->
+    <div class="form-group" style="margin-bottom:18px;">
+      <label>Imagens do Atendimento</label>
+      <div class="photo-upload-area">
+        <input type="file" id="foto" accept="image/*" capture="environment" multiple>
+        <label for="foto" class="btn btn-ghost" style="cursor:pointer;">📷 Selecionar / Tirar Foto</label>
+        <div class="photo-count-badge" id="photo-count"><span>📁</span> 0 fotos</div>
+        <div class="photo-grid" id="fotos"></div>
+      </div>
+    </div>
+    <hr class="divider">
+    <!-- ASSINATURA INSPETOR -->
+    <div class="form-group" style="margin-bottom:16px;">
+      <label>Assinatura do Inspetor</label>
+      <div class="signature-wrap"><canvas id="signature-canvas"></canvas></div>
+      <div style="margin-top:6px;"><button type="button" class="btn btn-ghost btn-sm" id="clear-signature">✕ Limpar</button></div>
+    </div>
+    <!-- ASSINATURA CLIENTE -->
+    <div class="form-group">
+      <label>Assinatura do Responsável do Cliente</label>
+      <div class="signature-wrap"><canvas id="signature-canvas-cliente"></canvas></div>
+      <div style="margin-top:6px;"><button type="button" class="btn btn-ghost btn-sm" id="clear-signature-cliente">✕ Limpar</button></div>
+    </div>
+  </div>
+
+  <div class="btn-group" style="margin-bottom:40px;">
+    <button type="button" class="btn btn-success" id="salvar">💾 Salvar Checklist</button>
+    <button type="button" class="btn btn-warning" id="limpar">↺ Limpar Formulário</button>
+  </div>
 </div>
 
+<!-- ═══ TAB: HISTÓRICO ═══ -->
+<div id="historico" class="tab-content">
+  <h1 class="page-title">Histórico</h1>
+  <p class="page-subtitle">Consulte, edite e gerencie os atendimentos registrados.</p>
+  <div id="storage-indicator"></div>
+  <div class="filters-bar">
+    <div class="search-wrap"><span class="search-icon">🔍</span><input type="text" id="filter-search" placeholder="Buscar por cliente ou inspetor..."></div>
+    <div class="filter-group"><label for="filter-status">Status</label><select id="filter-status"><option value="all">Todos</option><option value="APROVADO">Aprovado</option><option value="REPROVADO">Reprovado</option><option value="PENDENTE">Pendente</option></select></div>
+    <div class="filter-group"><label for="filter-date">Data</label><input type="date" id="filter-date"></div>
+    <button type="button" class="btn btn-primary btn-sm" id="apply-filters" style="align-self:flex-end;">Aplicar</button>
+    <button type="button" class="btn btn-danger btn-sm" id="clear-all-data" style="align-self:flex-end;">🗑 Limpar Tudo</button>
+  </div>
+  <div id="history-list"></div>
+</div>
+
+<!-- ═══ TAB: DASHBOARD ═══ -->
+<div id="dashboard" class="tab-content">
+  <h1 class="page-title">Dashboard</h1>
+  <p class="page-subtitle">Visão geral dos atendimentos registrados.</p>
+  <div id="dashboard-content"></div>
+</div>
+
+</div><!-- /container -->
+
 <script>
-    let checklists = [];
-    let signaturePad;
-    let equipamentoCount = 1;
-    let fotosTemp = [];
-    const DB_NAME   = 'TigerRentankDB';
-    const DB_VERSION = 1;
-    const STORE_NAME = 'checklists';
-    let db = null;
+// ════════════════════════════════════════════════
+//  GLOBALS
+// ════════════════════════════════════════════════
+let checklists = [];
+let signaturePad, signaturePadCliente;
+let equipamentoCount = 1;
+let fotosTemp = [];
+let draftTimer = null;
+let editingId = null;
 
-    // ═══════════════════════════════════════════════
-    //  IndexedDB — abre/cria o banco
-    // ═══════════════════════════════════════════════
-    function openDB() {
-        return new Promise((resolve, reject) => {
-            if (db) { resolve(db); return; }
-            const req = indexedDB.open(DB_NAME, DB_VERSION);
-            req.onupgradeneeded = e => {
-                const idb = e.target.result;
-                if (!idb.objectStoreNames.contains(STORE_NAME)) {
-                    idb.createObjectStore(STORE_NAME, { keyPath: 'id' });
-                }
-            };
-            req.onsuccess = e => { db = e.target.result; resolve(db); };
-            req.onerror   = e => reject(e.target.error);
-        });
+const DB_NAME = 'TigerRentankDB';
+const DB_VERSION = 1;
+const STORE_NAME = 'checklists';
+const DRAFT_KEY = 'tiger_draft';
+let db = null;
+
+// ════════════════════════════════════════════════
+//  INDEXEDDB
+// ════════════════════════════════════════════════
+function openDB() {
+  return new Promise((res, rej) => {
+    if (db) { res(db); return; }
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = e => {
+      const idb = e.target.result;
+      if (!idb.objectStoreNames.contains(STORE_NAME))
+        idb.createObjectStore(STORE_NAME, { keyPath: 'id' });
+    };
+    req.onsuccess = e => { db = e.target.result; res(db); };
+    req.onerror   = e => rej(e.target.error);
+  });
+}
+const dbOp = (mode, fn) => openDB().then(idb => new Promise((res, rej) => {
+  const tx  = idb.transaction(STORE_NAME, mode);
+  const req = fn(tx.objectStore(STORE_NAME));
+  req.onsuccess = e => res(e.target.result);
+  req.onerror   = e => rej(e.target.error);
+}));
+const dbSave   = d  => dbOp('readwrite', s => s.put(d));
+const dbDelete = id => dbOp('readwrite', s => s.delete(id));
+const dbAll    = () => dbOp('readonly',  s => s.getAll());
+const dbClear  = () => dbOp('readwrite', s => s.clear());
+
+async function migrateFromLocalStorage() {
+  if (localStorage.getItem('idb_migrated')) return;
+  try {
+    const raw = localStorage.getItem('atendimentosExternosData');
+    if (raw) {
+      for (const item of JSON.parse(raw)) await dbSave(item);
+      localStorage.removeItem('atendimentosExternosData');
     }
+    localStorage.setItem('idb_migrated','1');
+  } catch(e) { console.warn('Migração falhou:',e); }
+}
 
-    function dbSaveChecklist(data) {
-        return openDB().then(idb => new Promise((resolve, reject) => {
-            const tx  = idb.transaction(STORE_NAME, 'readwrite');
-            const req = tx.objectStore(STORE_NAME).put(data);
-            req.onsuccess = () => resolve(true);
-            req.onerror   = e => reject(e.target.error);
-        }));
+// ════════════════════════════════════════════════
+//  EQUIPAMENTO TEMPLATE
+// ════════════════════════════════════════════════
+function getEquipamentoTemplate(index) {
+  return `<div class="equipamento-card" id="equipamento-${index}">
+    <div class="equipamento-header">
+      <span class="equipamento-badge">Equipamento ${index}</span>
+      <button type="button" class="btn btn-danger btn-sm" onclick="removerEquipamento(${index})">✕ Remover</button>
+    </div>
+    <div class="form-grid">
+      <div class="form-group"><label>Nº Série</label><input type="text" class="equipamento-serie" placeholder="Número de série"></div>
+      <div class="form-group"><label>Modelo</label><input type="text" class="equipamento-modelo" placeholder="Modelo"></div>
+      <div class="form-group"><label>Certificação</label><input type="date" class="equipamento-cert-data"></div>
+      <div class="form-group"><label>Nº Eslinga</label><input type="text" class="equipamento-eslinga" placeholder="Número da eslinga"></div>
+      <div class="form-group"><label>Cert. Eslinga</label><input type="date" class="equipamento-eslinga-data"></div>
+      <div class="form-group"><label>Observações</label><input type="text" class="equipamento-obs" placeholder="Observações"></div>
+    </div>
+  </div>`;
+}
+window.removerEquipamento = id => { const el = document.getElementById(`equipamento-${id}`); if(el) el.remove(); updateProgress(); };
+
+// ════════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('data-atendimento').value = new Date().toISOString().split('T')[0];
+  loadTheme();
+  initSignaturePads();
+  addEquipamento();
+  setupEventListeners();
+  setupDraftAutoSave();
+
+  migrateFromLocalStorage()
+    .then(() => dbAll())
+    .then(data => { checklists = data; updateHistoryList(); updateDashboard(); })
+    .catch(e => { console.error(e); showNotification('Erro ao carregar dados.','error'); });
+
+  loadDraft();
+});
+
+// ════════════════════════════════════════════════
+//  TEMA CLARO/ESCURO
+// ════════════════════════════════════════════════
+function loadTheme() {
+  const t = localStorage.getItem('tiger_theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', t);
+  document.getElementById('theme-toggle').textContent = t === 'dark' ? '🌙' : '☀️';
+}
+function toggleTheme() {
+  const cur = document.documentElement.getAttribute('data-theme');
+  const next = cur === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('tiger_theme', next);
+  document.getElementById('theme-toggle').textContent = next === 'dark' ? '🌙' : '☀️';
+  // Reinit signature pads (bg changes)
+  initSignaturePads();
+}
+
+// ════════════════════════════════════════════════
+//  PROGRESSO DO FORMULÁRIO
+// ════════════════════════════════════════════════
+function updateProgress() {
+  const fields = [
+    document.getElementById('inspetor1').value.trim(),
+    document.getElementById('data-atendimento').value,
+    document.getElementById('veiculo-placa').value.trim(),
+    document.getElementById('cliente').value.trim(),
+  ];
+  let filled = fields.filter(Boolean).length;
+  const total = 4 + 12; // 4 campos obrigatórios + 12 perguntas inspeção
+  const answered = document.querySelectorAll('#inspecao-itens input[type=radio]:checked').length;
+  const pct = Math.round(((filled + answered) / total) * 100);
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-label').textContent = pct + '%';
+}
+
+// ════════════════════════════════════════════════
+//  RASCUNHO AUTOMÁTICO
+// ════════════════════════════════════════════════
+function setupDraftAutoSave() {
+  // Salva a cada 30s se houver dados
+  draftTimer = setInterval(() => {
+    if (document.getElementById('inspetor1').value.trim() ||
+        document.getElementById('cliente').value.trim()) {
+      saveDraft();
     }
+  }, 30000);
+}
 
-    function dbDeleteChecklist(id) {
-        return openDB().then(idb => new Promise((resolve, reject) => {
-            const tx  = idb.transaction(STORE_NAME, 'readwrite');
-            const req = tx.objectStore(STORE_NAME).delete(id);
-            req.onsuccess = () => resolve(true);
-            req.onerror   = e => reject(e.target.error);
-        }));
+function saveDraft() {
+  try {
+    const data = collectFormData();
+    // Não salva as fotos no rascunho (muito grande)
+    const draftData = { ...data, fotos: [] };
+    localStorage.setItem(DRAFT_KEY, JSON.stringify(draftData));
+    const now = new Date().toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
+    document.getElementById('draft-status').textContent = `Rascunho salvo ${now}`;
+  } catch(e) {}
+}
+
+function loadDraft() {
+  try {
+    const raw = localStorage.getItem(DRAFT_KEY);
+    if (!raw) return;
+    const d = JSON.parse(raw);
+    if (!d.inspetor1 && !d.cliente) return;
+    if (confirm('Existe um rascunho salvo. Deseja restaurá-lo?')) {
+      fillFormWithData(d);
+      showNotification('Rascunho restaurado!');
     }
+  } catch(e) {}
+}
 
-    function dbLoadAll() {
-        return openDB().then(idb => new Promise((resolve, reject) => {
-            const tx  = idb.transaction(STORE_NAME, 'readonly');
-            const req = tx.objectStore(STORE_NAME).getAll();
-            req.onsuccess = e => resolve(e.target.result || []);
-            req.onerror   = e => reject(e.target.error);
-        }));
+function clearDraft() {
+  localStorage.removeItem(DRAFT_KEY);
+  document.getElementById('draft-status').textContent = 'Rascunho';
+}
+
+// ════════════════════════════════════════════════
+//  SIGNATURE PADS
+// ════════════════════════════════════════════════
+function initSignaturePads() {
+  const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+  const bg = isDark ? 'rgb(255,255,255)' : 'rgb(255,255,255)';
+
+  ['signature-canvas','signature-canvas-cliente'].forEach((id, i) => {
+    const canvas = document.getElementById(id);
+    if (!canvas) return;
+    const ratio = Math.max(window.devicePixelRatio||1,1);
+    canvas.width  = canvas.offsetWidth  * ratio;
+    canvas.height = canvas.offsetHeight * ratio;
+    canvas.getContext('2d').scale(ratio, ratio);
+    const pad = new SignaturePad(canvas, { backgroundColor: bg });
+    if (i === 0) signaturePad = pad;
+    else signaturePadCliente = pad;
+  });
+  window.addEventListener('resize', () => {
+    ['signature-canvas','signature-canvas-cliente'].forEach(id => {
+      const c = document.getElementById(id);
+      if (!c) return;
+      const r = Math.max(window.devicePixelRatio||1,1);
+      c.width = c.offsetWidth*r; c.height = c.offsetHeight*r;
+      c.getContext('2d').scale(r,r);
+    });
+    if (signaturePad) signaturePad.clear();
+    if (signaturePadCliente) signaturePadCliente.clear();
+  });
+}
+
+// ════════════════════════════════════════════════
+//  EVENTOS
+// ════════════════════════════════════════════════
+function setupEventListeners() {
+  // Tabs
+  document.querySelectorAll('.nav-tab').forEach(t =>
+    t.addEventListener('click', e => { e.preventDefault(); switchTab(t.getAttribute('data-tab')); }));
+
+  // Tema
+  document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+
+  // Assinaturas
+  document.getElementById('clear-signature').addEventListener('click', () => signaturePad.clear());
+  document.getElementById('clear-signature-cliente').addEventListener('click', () => signaturePadCliente.clear());
+
+  // Fotos
+  document.getElementById('foto').addEventListener('change', addPhotos);
+
+  // Equipamento
+  document.getElementById('add-equipamento').addEventListener('click', addEquipamento);
+
+  // Progresso ao digitar
+  document.querySelectorAll('#inspetor1,#data-atendimento,#veiculo-placa,#cliente').forEach(el =>
+    el.addEventListener('input', updateProgress));
+  document.querySelectorAll('#inspecao-itens input[type=radio]').forEach(r =>
+    r.addEventListener('change', updateProgress));
+
+  // Salvar
+  document.getElementById('salvar').addEventListener('click', openResumoModal);
+  document.getElementById('limpar').addEventListener('click', () => {
+    if (confirm('Limpar todos os dados do formulário?')) { clearForm(); clearDraft(); }
+  });
+
+  // Modal
+  document.getElementById('modal-cancelar').addEventListener('click', closeResumoModal);
+  document.getElementById('modal-confirmar').addEventListener('click', confirmSave);
+  document.getElementById('modal-resumo').addEventListener('click', e => {
+    if (e.target === document.getElementById('modal-resumo')) closeResumoModal();
+  });
+
+  // Filtros histórico
+  document.getElementById('apply-filters').addEventListener('click', updateHistoryList);
+  document.getElementById('filter-search').addEventListener('input', updateHistoryList);
+  document.getElementById('clear-all-data').addEventListener('click', clearAllData);
+}
+
+function addEquipamento() {
+  const container = document.getElementById('equipamentos-container');
+  const el = document.createElement('div');
+  el.innerHTML = getEquipamentoTemplate(equipamentoCount);
+  container.appendChild(el);
+  equipamentoCount++;
+}
+
+// ════════════════════════════════════════════════
+//  FOTOS — COM COMPRESSÃO
+// ════════════════════════════════════════════════
+function compressImage(file, maxW, maxH, q) {
+  return new Promise((res, rej) => {
+    const reader = new FileReader();
+    reader.onerror = rej;
+    reader.onload = e => {
+      const img = new Image();
+      img.onerror = rej;
+      img.onload = () => {
+        let w = img.width, h = img.height;
+        if (w > maxW) { h = Math.round(h*maxW/w); w = maxW; }
+        if (h > maxH) { w = Math.round(w*maxH/h); h = maxH; }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img,0,0,w,h);
+        res(canvas.toDataURL('image/jpeg', q));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function addPhotos() {
+  const input = document.getElementById('foto');
+  const container = document.getElementById('fotos');
+  if (!input.files || !input.files.length) return;
+  const MAX = 10;
+  if (fotosTemp.length >= MAX) { showNotification(`Máximo de ${MAX} fotos.`,'error'); input.value=''; return; }
+  Array.from(input.files).slice(0, MAX - fotosTemp.length).forEach(file => {
+    if (!file.type.startsWith('image/')) return;
+    compressImage(file, 800, 800, 0.65).then(base64 => {
+      fotosTemp.push({ nome: file.name, base64, tipo:'image/jpeg' });
+      const item = document.createElement('div');
+      item.className = 'photo-item';
+      const img = document.createElement('img'); img.src = base64;
+      const btn = document.createElement('button'); btn.className = 'remove-photo'; btn.innerHTML = '×';
+      btn.onclick = () => { container.removeChild(item); fotosTemp.splice(fotosTemp.findIndex(f=>f.base64===base64),1); updatePhotoCount(); };
+      item.appendChild(img); item.appendChild(btn); container.appendChild(item);
+      updatePhotoCount();
+    }).catch(() => showNotification(`Erro ao processar ${file.name}`,'error'));
+  });
+  input.value = '';
+}
+
+function updatePhotoCount() {
+  document.getElementById('photo-count').innerHTML = `<span>📁</span> ${fotosTemp.length} foto(s)`;
+}
+
+// ════════════════════════════════════════════════
+//  COLETA DE DADOS
+// ════════════════════════════════════════════════
+function collectFormData(id) {
+  const equipamentos = [];
+  document.querySelectorAll('.equipamento-card').forEach(item => {
+    equipamentos.push({
+      serie:       item.querySelector('.equipamento-serie')?.value||'',
+      modelo:      item.querySelector('.equipamento-modelo')?.value||'',
+      certData:    item.querySelector('.equipamento-cert-data')?.value||'',
+      eslinga:     item.querySelector('.equipamento-eslinga')?.value||'',
+      eslingaData: item.querySelector('.equipamento-eslinga-data')?.value||'',
+      obs:         item.querySelector('.equipamento-obs')?.value||''
+    });
+  });
+  const servicos = [...document.querySelectorAll('input[name=servicos]:checked')].map(c=>c.value);
+  const respostasInspecao = {};
+  document.querySelectorAll('#inspecao-itens .inspection-item').forEach((item, i) => {
+    respostasInspecao[`pergunta_${i+1}`] = {
+      pergunta: item.querySelector('.inspection-question').textContent.trim(),
+      resposta: item.querySelector('input[type=radio]:checked')?.value || 'NÃO RESPONDIDO'
+    };
+  });
+  return {
+    id: id || ('ATD' + Date.now()),
+    inspetor1:    document.getElementById('inspetor1').value,
+    inspetor2:    document.getElementById('inspetor2').value,
+    data:         document.getElementById('data-atendimento').value,
+    veiculo:      document.getElementById('veiculo-placa').value,
+    cliente:      document.getElementById('cliente').value,
+    equipamentos, servicos, respostasInspecao,
+    observacoes:  document.getElementById('observacoes').value,
+    status:       document.querySelector('input[name=status]:checked')?.value || 'PENDENTE',
+    assinatura:   signaturePad?.isEmpty() ? '' : signaturePad?.toDataURL(),
+    assinaturaCliente: signaturePadCliente?.isEmpty() ? '' : signaturePadCliente?.toDataURL(),
+    fotos:        fotosTemp.map(f=>({nome:f.nome,base64:f.base64,tipo:f.tipo})),
+    timestamp:    new Date().toISOString()
+  };
+}
+
+function fillFormWithData(d) {
+  document.getElementById('inspetor1').value   = d.inspetor1  || '';
+  document.getElementById('inspetor2').value   = d.inspetor2  || '';
+  document.getElementById('data-atendimento').value = d.data  || new Date().toISOString().split('T')[0];
+  document.getElementById('veiculo-placa').value    = d.veiculo || '';
+  document.getElementById('cliente').value          = d.cliente || '';
+  document.getElementById('observacoes').value      = d.observacoes || '';
+
+  // equipamentos
+  document.getElementById('equipamentos-container').innerHTML = '';
+  equipamentoCount = 1;
+  (d.equipamentos||[{serie:'',modelo:'',certData:'',eslinga:'',eslingaData:'',obs:''}]).forEach((eq, idx) => {
+    addEquipamento();
+    const card = document.querySelector(`#equipamento-${idx+1}`);
+    if (!card) return;
+    card.querySelector('.equipamento-serie').value        = eq.serie||'';
+    card.querySelector('.equipamento-modelo').value       = eq.modelo||'';
+    card.querySelector('.equipamento-cert-data').value    = eq.certData||'';
+    card.querySelector('.equipamento-eslinga').value      = eq.eslinga||'';
+    card.querySelector('.equipamento-eslinga-data').value = eq.eslingaData||'';
+    card.querySelector('.equipamento-obs').value          = eq.obs||'';
+  });
+
+  // serviços
+  document.querySelectorAll('input[name=servicos]').forEach(cb => {
+    cb.checked = (d.servicos||[]).includes(cb.value);
+  });
+
+  // inspeção
+  Object.values(d.respostasInspecao||{}).forEach((item, i) => {
+    const inputs = document.querySelectorAll(`#inspecao-itens .inspection-item:nth-child(${i+1}) input[type=radio]`);
+    inputs.forEach(r => { if(r.value === item.resposta) r.checked = true; });
+  });
+
+  // status
+  const statusRadio = document.querySelector(`input[name=status][value="${d.status}"]`);
+  if (statusRadio) statusRadio.checked = true;
+
+  updateProgress();
+}
+
+// ════════════════════════════════════════════════
+//  VALIDAÇÃO
+// ════════════════════════════════════════════════
+function validateForm() {
+  const checks = [
+    [document.getElementById('inspetor1').value.trim(),   'Informe o nome do inspetor!'],
+    [document.getElementById('data-atendimento').value,   'Informe a data do atendimento!'],
+    [document.getElementById('veiculo-placa').value.trim(),'Informe o veículo/placa!'],
+    [document.getElementById('cliente').value.trim(),      'Informe o nome do cliente!'],
+  ];
+  for (const [v,msg] of checks) { if(!v){ showNotification(msg,'error'); return false; } }
+  return true;
+}
+
+// ════════════════════════════════════════════════
+//  MODAL RESUMO
+// ════════════════════════════════════════════════
+function openResumoModal() {
+  if (!validateForm()) return;
+  const d = collectFormData(editingId || undefined);
+
+  const nao = Object.values(d.respostasInspecao).filter(r=>r.resposta==='NÃO').length;
+  const nr  = Object.values(d.respostasInspecao).filter(r=>r.resposta==='NÃO RESPONDIDO').length;
+
+  let html = `
+    <div class="modal-section">
+      <div class="modal-section-title">📋 Dados Gerais</div>
+      <div class="modal-row"><span>Inspetor 1</span><span>${d.inspetor1}</span></div>
+      ${d.inspetor2 ? `<div class="modal-row"><span>Inspetor 2</span><span>${d.inspetor2}</span></div>` : ''}
+      <div class="modal-row"><span>Data</span><span>${d.data}</span></div>
+      <div class="modal-row"><span>Veículo / Placa</span><span>${d.veiculo}</span></div>
+      <div class="modal-row"><span>Cliente</span><span>${d.cliente}</span></div>
+      <div class="modal-row"><span>Status</span><span>${d.status}</span></div>
+    </div>
+    <div class="modal-section">
+      <div class="modal-section-title">🔧 Equipamentos (${d.equipamentos.length})</div>
+      ${d.equipamentos.map((eq,i)=>`
+        <div class="modal-row"><span>Equip. ${i+1} — ${eq.modelo||'—'}</span><span>Série: ${eq.serie||'—'}</span></div>
+      `).join('')}
+    </div>
+    <div class="modal-section">
+      <div class="modal-section-title">⚙️ Serviços (${d.servicos.length})</div>
+      ${d.servicos.length ? d.servicos.map(s=>`<div class="modal-row"><span>${s}</span><span>✓</span></div>`).join('') : '<div class="modal-row"><span>Nenhum serviço selecionado</span><span></span></div>'}
+    </div>
+    <div class="modal-section">
+      <div class="modal-section-title">🔍 Inspeção — ${nao > 0 ? `<span style="color:var(--danger)">${nao} NÃO</span>` : '<span style="color:var(--success)">Sem pendências</span>'} ${nr>0?`· <span style="color:var(--warning)">${nr} não respondida(s)</span>`:''}</div>
+      ${Object.values(d.respostasInspecao).map(item=>{
+        const cls = item.resposta==='SIM'?'r-sim':item.resposta==='NÃO'?'r-nao':item.resposta==='N/A'?'r-na':'r-nr';
+        return `<div class="modal-insp-item"><span class="modal-insp-q">${item.pergunta}</span><span class="modal-insp-r ${cls}">${item.resposta}</span></div>`;
+      }).join('')}
+    </div>
+    <div class="modal-section">
+      <div class="modal-section-title">📷 Fotos</div>
+      <div class="modal-row"><span>Imagens anexadas</span><span>${d.fotos.length} foto(s)</span></div>
+      <div class="modal-row"><span>Assinatura Inspetor</span><span>${d.assinatura?'✓ Assinado':'— Não assinado'}</span></div>
+      <div class="modal-row"><span>Assinatura Cliente</span><span>${d.assinaturaCliente?'✓ Assinado':'— Não assinado'}</span></div>
+    </div>`;
+
+  document.getElementById('modal-content').innerHTML = html;
+  document.getElementById('modal-resumo').classList.add('open');
+}
+
+function closeResumoModal() {
+  document.getElementById('modal-resumo').classList.remove('open');
+}
+
+function confirmSave() {
+  closeResumoModal();
+  const data = collectFormData(editingId || undefined);
+  const btn = document.getElementById('salvar');
+  btn.disabled = true;
+  btn.innerHTML = '⏳ Salvando...';
+
+  dbSave(data).then(() => {
+    if (editingId) {
+      checklists = checklists.map(c => c.id === editingId ? data : c);
+      editingId = null;
+      showNotification('Atendimento atualizado!');
+    } else {
+      checklists.push(data);
+      showNotification('Checklist salvo com sucesso!');
+      setTimeout(() => generatePDF(data.id), 600);
     }
+    clearDraft();
+    updateHistoryList();
+    updateDashboard();
+    clearForm();
+  }).catch(e => {
+    showNotification('Erro ao salvar: ' + e.message, 'error');
+  }).finally(() => {
+    btn.disabled = false;
+    btn.innerHTML = '💾 Salvar Checklist';
+  });
+}
 
-    function dbClearAll() {
-        return openDB().then(idb => new Promise((resolve, reject) => {
-            const tx  = idb.transaction(STORE_NAME, 'readwrite');
-            const req = tx.objectStore(STORE_NAME).clear();
-            req.onsuccess = () => resolve(true);
-            req.onerror   = e => reject(e.target.error);
-        }));
-    }
+// ════════════════════════════════════════════════
+//  LIMPAR FORMULÁRIO
+// ════════════════════════════════════════════════
+function clearForm() {
+  ['inspetor1','inspetor2','veiculo-placa','cliente','observacoes'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('data-atendimento').value = new Date().toISOString().split('T')[0];
+  document.getElementById('equipamentos-container').innerHTML = '';
+  equipamentoCount = 1;
+  addEquipamento();
+  document.querySelectorAll('input[name=servicos]').forEach(cb => cb.checked = false);
+  document.querySelectorAll('#inspecao-itens input[type=radio]').forEach(r => r.checked = false);
+  document.querySelectorAll('input[name=status]').forEach(r => r.checked = false);
+  if (signaturePad) signaturePad.clear();
+  if (signaturePadCliente) signaturePadCliente.clear();
+  document.getElementById('fotos').innerHTML = '';
+  fotosTemp = [];
+  updatePhotoCount();
+  editingId = null;
+  document.querySelector('#checklist .page-title').textContent = 'Novo Atendimento';
+  updateProgress();
+  showNotification('Formulário limpo!');
+}
 
-    // Estima uso do IndexedDB (aproximado via tamanho dos dados em memória)
-    function getStorageSizeKB() {
-        const json = JSON.stringify(checklists);
-        return Math.round((json.length * 2) / 1024);
-    }
+// ════════════════════════════════════════════════
+//  EDITAR ATENDIMENTO
+// ════════════════════════════════════════════════
+window.editChecklist = function(id) {
+  const d = checklists.find(c => c.id === id);
+  if (!d) return;
+  switchTab('checklist');
+  editingId = id;
+  document.querySelector('#checklist .page-title').textContent = '✏️ Editando Atendimento';
+  fillFormWithData(d);
+  fotosTemp = (d.fotos || []).map(f => ({ ...f }));
+  // Rebuild photo grid
+  const container = document.getElementById('fotos');
+  container.innerHTML = '';
+  fotosTemp.forEach(f => {
+    const item = document.createElement('div'); item.className = 'photo-item';
+    const img = document.createElement('img'); img.src = f.base64;
+    const btn = document.createElement('button'); btn.className = 'remove-photo'; btn.innerHTML = '×';
+    btn.onclick = () => { container.removeChild(item); fotosTemp.splice(fotosTemp.findIndex(x=>x.base64===f.base64),1); updatePhotoCount(); };
+    item.appendChild(img); item.appendChild(btn); container.appendChild(item);
+  });
+  updatePhotoCount();
+  window.scrollTo({top:0,behavior:'smooth'});
+  showNotification('Editando atendimento. Faça as alterações e salve.');
+};
 
-    function getEquipamentoTemplate(index) {
-        return `
-        <div class="equipamento-card" id="equipamento-${index}">
-            <div class="equipamento-header">
-                <span class="equipamento-badge">Equipamento ${index}</span>
-                <button type="button" class="btn btn-danger btn-sm" onclick="removerEquipamento(${index})">✕ Remover</button>
-            </div>
-            <div class="form-grid">
-                <div class="form-group">
-                    <label>Nº Série</label>
-                    <input type="text" class="equipamento-serie" placeholder="Número de série">
-                </div>
-                <div class="form-group">
-                    <label>Modelo</label>
-                    <input type="text" class="equipamento-modelo" placeholder="Modelo">
-                </div>
-                <div class="form-group">
-                    <label>Certificação</label>
-                    <input type="date" class="equipamento-cert-data">
-                </div>
-                <div class="form-group">
-                    <label>Nº Eslinga</label>
-                    <input type="text" class="equipamento-eslinga" placeholder="Número da eslinga">
-                </div>
-                <div class="form-group">
-                    <label>Cert. Eslinga</label>
-                    <input type="date" class="equipamento-eslinga-data">
-                </div>
-                <div class="form-group">
-                    <label>Observações</label>
-                    <input type="text" class="equipamento-obs" placeholder="Observações">
-                </div>
-            </div>
-        </div>`;
-    }
+// ════════════════════════════════════════════════
+//  DUPLICAR ATENDIMENTO
+// ════════════════════════════════════════════════
+window.duplicateChecklist = function(id) {
+  const d = checklists.find(c => c.id === id);
+  if (!d) return;
+  switchTab('checklist');
+  editingId = null;
+  document.querySelector('#checklist .page-title').textContent = '📋 Novo (duplicado)';
+  const copy = { ...d, fotos: [], assinatura: '', assinaturaCliente: '' };
+  fillFormWithData(copy);
+  fotosTemp = [];
+  document.getElementById('fotos').innerHTML = '';
+  updatePhotoCount();
+  if (signaturePad) signaturePad.clear();
+  if (signaturePadCliente) signaturePadCliente.clear();
+  window.scrollTo({top:0,behavior:'smooth'});
+  showNotification('Formulário preenchido com dados do atendimento. Revise e salve.');
+};
 
-    document.addEventListener('DOMContentLoaded', function () {
-        document.getElementById('data-atendimento').value = new Date().toISOString().split('T')[0];
-        initializeSignaturePad();
-        setupEventListeners();
+// ════════════════════════════════════════════════
+//  HISTÓRICO
+// ════════════════════════════════════════════════
+function updateHistoryList() {
+  const list = document.getElementById('history-list');
+  list.innerHTML = '';
 
-        // Abre o banco e carrega dados
-        migrateFromLocalStorage().then(() => dbLoadAll()).then(data => {
-            checklists = data;
-            updateHistoryList();
-        }).catch(e => {
-            console.error('Erro ao carregar dados:', e);
-            showNotification('Erro ao carregar histórico.', 'error');
-        });
+  // Storage info
+  const totalR = checklists.length;
+  const totalF = checklists.reduce((a,c)=>a+(c.fotos?.length||0),0);
+  document.getElementById('storage-indicator').innerHTML = `
+    <div class="storage-box">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+        <span style="font-size:12px;color:var(--text-muted);">💾 IndexedDB — sem limite fixo</span>
+        <span style="font-size:12px;font-weight:700;color:var(--success);">✓ Armazenamento OK</span>
+      </div>
+      <div style="display:flex;gap:14px;margin-top:7px;flex-wrap:wrap;">
+        <span style="font-size:12px;color:var(--text-muted);">📋 <b style="color:var(--text)">${totalR}</b> atendimentos</span>
+        <span style="font-size:12px;color:var(--text-muted);">📷 <b style="color:var(--text)">${totalF}</b> fotos</span>
+      </div>
+    </div>`;
 
-        const container = document.getElementById('equipamentos-container');
-        container.innerHTML = '';
-        const el = document.createElement('div');
-        el.innerHTML = getEquipamentoTemplate(equipamentoCount);
-        container.appendChild(el);
-        equipamentoCount++;
+  if (!checklists.length) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📂</div><p>Nenhum atendimento registrado.</p></div>`;
+    return;
+  }
+
+  const search  = (document.getElementById('filter-search').value||'').toLowerCase();
+  const fStatus = document.getElementById('filter-status').value;
+  const fDate   = document.getElementById('filter-date').value;
+
+  const filtered = checklists.filter(item => {
+    if (fStatus !== 'all' && item.status !== fStatus) return false;
+    if (fDate && item.data !== fDate) return false;
+    if (search && !item.cliente.toLowerCase().includes(search) && !item.inspetor1.toLowerCase().includes(search)) return false;
+    return true;
+  }).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+  if (!filtered.length) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-state-icon">🔍</div><p>Nenhum resultado encontrado.</p></div>`;
+    return;
+  }
+
+  filtered.forEach(item => {
+    const bc = item.status==='APROVADO'?'badge-approved':item.status==='REPROVADO'?'badge-rejected':'badge-pending';
+    const card = document.createElement('div');
+    card.className = 'history-card';
+    card.innerHTML = `
+      <div class="history-info">
+        <div class="history-client">${item.cliente}</div>
+        <div class="history-meta">
+          <span>📅 ${item.data}</span><span class="meta-dot">·</span>
+          <span>👤 ${item.inspetor1}</span><span class="meta-dot">·</span>
+          <span>🚗 ${item.veiculo}</span><span class="meta-dot">·</span>
+          <span>🔧 ${item.equipamentos.length}</span><span class="meta-dot">·</span>
+          <span>📷 ${item.fotos?.length||0}</span>
+        </div>
+        <div style="margin-top:6px;"><span class="status-badge ${bc}">${item.status}</span></div>
+      </div>
+      <div class="history-actions">
+        <button class="btn btn-primary btn-sm" onclick="generatePDF('${item.id}')">📄</button>
+        <button class="btn btn-info btn-sm" onclick="editChecklist('${item.id}')" title="Editar">✏️</button>
+        <button class="btn btn-ghost btn-sm" onclick="duplicateChecklist('${item.id}')" title="Duplicar">📋</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteChecklist('${item.id}')">🗑</button>
+      </div>`;
+    list.appendChild(card);
+  });
+}
+
+window.deleteChecklist = function(id) {
+  if (!confirm('Excluir este atendimento?')) return;
+  dbDelete(id).then(() => {
+    checklists = checklists.filter(c => c.id !== id);
+    updateHistoryList(); updateDashboard();
+    showNotification('Atendimento excluído!');
+  }).catch(() => showNotification('Erro ao excluir.','error'));
+};
+
+function clearAllData() {
+  if (!confirm('Excluir TODOS os atendimentos? Esta ação não pode ser desfeita!')) return;
+  dbClear().then(() => {
+    checklists = [];
+    updateHistoryList(); updateDashboard();
+    showNotification('Todos os dados excluídos!');
+  }).catch(() => showNotification('Erro ao limpar.','error'));
+}
+
+// ════════════════════════════════════════════════
+//  DASHBOARD
+// ════════════════════════════════════════════════
+function updateDashboard() {
+  const el = document.getElementById('dashboard-content');
+  if (!checklists.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📊</div><p>Nenhum dado ainda. Registre atendimentos para ver as estatísticas.</p></div>`;
+    return;
+  }
+
+  const total     = checklists.length;
+  const aprovados = checklists.filter(c=>c.status==='APROVADO').length;
+  const reprovados= checklists.filter(c=>c.status==='REPROVADO').length;
+  const pendentes = checklists.filter(c=>c.status==='PENDENTE').length;
+  const totalFotos= checklists.reduce((a,c)=>a+(c.fotos?.length||0),0);
+
+  // Top clientes
+  const clienteCount = {};
+  checklists.forEach(c => { clienteCount[c.cliente] = (clienteCount[c.cliente]||0)+1; });
+  const topClientes = Object.entries(clienteCount).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  const maxCli = topClientes[0]?.[1] || 1;
+
+  // Top serviços
+  const servicoCount = {};
+  checklists.forEach(c => (c.servicos||[]).forEach(s=>{ servicoCount[s]=(servicoCount[s]||0)+1; }));
+  const topServicos = Object.entries(servicoCount).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  const maxSvc = topServicos[0]?.[1] || 1;
+
+  // Últimos 6 meses
+  const porMes = {};
+  checklists.forEach(c => {
+    if (!c.data) return;
+    const mes = c.data.slice(0,7);
+    porMes[mes] = (porMes[mes]||0)+1;
+  });
+  const meses = Object.entries(porMes).sort((a,b)=>a[0].localeCompare(b[0])).slice(-6);
+  const maxMes = Math.max(...meses.map(m=>m[1]), 1);
+
+  const pct = v => Math.round((v/total)*100);
+
+  el.innerHTML = `
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-number">${total}</div><div class="stat-label">Total</div></div>
+      <div class="stat-card"><div class="stat-number" style="color:var(--success)">${aprovados}</div><div class="stat-label">Aprovados</div></div>
+      <div class="stat-card"><div class="stat-number" style="color:var(--danger)">${reprovados}</div><div class="stat-label">Reprovados</div></div>
+      <div class="stat-card"><div class="stat-number" style="color:var(--warning)">${pendentes}</div><div class="stat-label">Pendentes</div></div>
+      <div class="stat-card"><div class="stat-number" style="color:var(--info)">${totalFotos}</div><div class="stat-label">Fotos</div></div>
+      <div class="stat-card"><div class="stat-number">${pct(aprovados)}%</div><div class="stat-label">Taxa aprovação</div></div>
+    </div>
+
+    <div class="section-card">
+      <p class="chart-title">📊 Status dos Atendimentos</p>
+      <div class="chart-bar-wrap">
+        <div class="chart-bar-row"><span class="chart-bar-label">Aprovados</span><div class="chart-bar-track"><div class="chart-bar-fill" style="width:${pct(aprovados)}%;background:var(--success);">${aprovados}</div></div></div>
+        <div class="chart-bar-row"><span class="chart-bar-label">Reprovados</span><div class="chart-bar-track"><div class="chart-bar-fill" style="width:${pct(reprovados)}%;background:var(--danger);">${reprovados}</div></div></div>
+        <div class="chart-bar-row"><span class="chart-bar-label">Pendentes</span><div class="chart-bar-track"><div class="chart-bar-fill" style="width:${pct(pendentes)}%;background:var(--warning);">${pendentes}</div></div></div>
+      </div>
+    </div>
+
+    ${meses.length > 1 ? `
+    <div class="section-card">
+      <p class="chart-title">📅 Atendimentos por Mês</p>
+      <div class="chart-bar-wrap">
+        ${meses.map(([mes,qt])=>`
+          <div class="chart-bar-row">
+            <span class="chart-bar-label">${mes.slice(5)+'/' + mes.slice(2,4)}</span>
+            <div class="chart-bar-track"><div class="chart-bar-fill" style="width:${Math.round(qt/maxMes*100)}%;background:var(--yellow);">${qt}</div></div>
+          </div>`).join('')}
+      </div>
+    </div>` : ''}
+
+    ${topClientes.length ? `
+    <div class="section-card">
+      <p class="chart-title">👥 Top Clientes</p>
+      <div class="chart-bar-wrap">
+        ${topClientes.map(([cli,qt])=>`
+          <div class="chart-bar-row">
+            <span class="chart-bar-label" title="${cli}">${cli}</span>
+            <div class="chart-bar-track"><div class="chart-bar-fill" style="width:${Math.round(qt/maxCli*100)}%;background:var(--info);">${qt}</div></div>
+          </div>`).join('')}
+      </div>
+    </div>` : ''}
+
+    ${topServicos.length ? `
+    <div class="section-card">
+      <p class="chart-title">⚙️ Serviços Mais Realizados</p>
+      <div class="chart-bar-wrap">
+        ${topServicos.map(([svc,qt])=>`
+          <div class="chart-bar-row">
+            <span class="chart-bar-label" title="${svc}">${svc.replace('MANUTENÇÃO','MANUT.').replace('CERTIFICAÇÃO','CERT.')}</span>
+            <div class="chart-bar-track"><div class="chart-bar-fill" style="width:${Math.round(qt/maxSvc*100)}%;background:var(--orange);">${qt}</div></div>
+          </div>`).join('')}
+      </div>
+    </div>` : ''}`;
+}
+
+// ════════════════════════════════════════════════
+//  PDF
+// ════════════════════════════════════════════════
+window.generatePDF = function(id) {
+  const c = checklists.find(x => x.id === id);
+  if (!c) { showNotification('Não encontrado!','error'); return; }
+  try {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+    const W = doc.internal.pageSize.getWidth();
+    const H = doc.internal.pageSize.getHeight();
+    const m = 15;
+    let y = m, pages = 1;
+
+    const chk = needed => {
+      if (y + needed > H - m) { doc.addPage(); pages++; y = m; return true; }
+      return false;
+    };
+    const bg = (yS, h) => {
+      doc.setFillColor(245,245,245);
+      doc.rect(m-2, yS-2, W-2*m+4, h+4, 'F');
+      doc.setDrawColor(200,200,200);
+      doc.rect(m-2, yS-2, W-2*m+4, h+4, 'S');
+    };
+    const sec = (title, yPos) => {
+      doc.setFontSize(11); doc.setTextColor(255,153,0);
+      doc.text(title, m, yPos);
+    };
+
+    // Cabeçalho
+    doc.setFillColor(255,204,0); doc.rect(m,5,32,9,'F');
+    doc.setFontSize(7); doc.setTextColor(51,51,51);
+    doc.text('TIGER RENTANK', m+16, 10.5, {align:'center'});
+    doc.setFontSize(14); doc.setTextColor(51,51,51);
+    doc.text('ATENDIMENTO EXTERNO', W/2, 22, {align:'center'});
+
+    y = 30;
+    doc.setFontSize(9); doc.setTextColor(0,0,0);
+    doc.text(`Inspetor 1: ${c.inspetor1}`, m, y);
+    if (c.inspetor2) doc.text(`Inspetor 2: ${c.inspetor2}`, m, y+4);
+    doc.text(`Data: ${c.data}`, m, y+8);
+    doc.text(`Veículo: ${c.veiculo}`, m+80, y);
+    doc.text(`Cliente: ${c.cliente}`, m+80, y+4);
+    doc.text(`Status: ${c.status}`, m+80, y+8);
+    y += 18;
+
+    // Equipamentos
+    chk(10);
+    bg(y-2, 10 + (c.equipamentos||[]).length * 16);
+    sec('EQUIPAMENTOS:', y); y += 6;
+    (c.equipamentos||[]).forEach((eq,i) => {
+      chk(18); doc.setFontSize(8); doc.setTextColor(0,0,0);
+      doc.text(`Equip. ${i+1}: ${eq.modelo||'—'}  |  Série: ${eq.serie||'—'}  |  Cert: ${eq.certData||'—'}`, m+3, y); y+=4;
+      doc.text(`Eslinga: ${eq.eslinga||'—'}  |  Cert. Eslinga: ${eq.eslingaData||'—'}${eq.obs?' | Obs: '+eq.obs:''}`, m+5, y); y+=10;
+    });
+    y += 3;
+
+    // Serviços
+    chk(12);
+    bg(y-2, 8 + (c.servicos?.length||1)*4);
+    sec('SERVIÇOS:', y); y += 5;
+    doc.setFontSize(8); doc.setTextColor(0,0,0);
+    (c.servicos?.length ? c.servicos : ['Nenhum serviço selecionado']).forEach(s => {
+      chk(5); doc.text(`• ${s}`, m+3, y); y += 4;
+    });
+    y += 5;
+
+    // Inspeção
+    chk(12);
+    const insp = Object.values(c.respostasInspecao||{});
+    let estH = 8; insp.forEach(i => { estH += doc.splitTextToSize(i.pergunta, W-2*m-10).length*3+5; });
+    bg(y-2, estH);
+    sec('INSPEÇÃO:', y); y += 5;
+    insp.forEach(item => {
+      chk(12); doc.setFontSize(7); doc.setTextColor(0,0,0);
+      const lines = doc.splitTextToSize(item.pergunta, W-2*m-10);
+      doc.text(lines, m+3, y); y += lines.length*3;
+      doc.setFont(undefined,'bold');
+      const rc = item.resposta==='SIM'?[34,197,94]:item.resposta==='NÃO'?[239,68,68]:[120,120,120];
+      doc.setTextColor(...rc);
+      doc.text(`Resposta: ${item.resposta}`, m+5, y);
+      doc.setFont(undefined,'normal'); doc.setTextColor(0,0,0); y += 5;
     });
 
-    function setupEventListeners() {
-        document.querySelectorAll('.nav-tab').forEach(tab => {
-            tab.addEventListener('click', e => { e.preventDefault(); switchTab(tab.getAttribute('data-tab')); });
-        });
-        document.getElementById('clear-signature').addEventListener('click', () => signaturePad.clear());
-        document.getElementById('foto').addEventListener('change', addPhotos);
-        document.getElementById('add-equipamento').addEventListener('click', () => {
-            const el = document.createElement('div');
-            el.innerHTML = getEquipamentoTemplate(equipamentoCount);
-            document.getElementById('equipamentos-container').appendChild(el);
-            equipamentoCount++;
-        });
-        document.getElementById('salvar').addEventListener('click', saveChecklist);
-        document.getElementById('limpar').addEventListener('click', () => {
-            if (confirm('Limpar todos os dados do formulário?')) clearForm();
-        });
-        document.getElementById('apply-filters').addEventListener('click', updateHistoryList);
-        document.getElementById('clear-all-data').addEventListener('click', clearAllData);
-    }
+    // Observações
+    y += 3; chk(14);
+    const obsL = doc.splitTextToSize(c.observacoes||'—', W-2*m);
+    bg(y-2, 8 + obsL.length*3 + 6);
+    sec('OBSERVAÇÕES:', y); y += 5;
+    doc.setFontSize(8); doc.setTextColor(0,0,0);
+    doc.text(obsL, m, y); y += obsL.length*3 + 5;
 
-    window.removerEquipamento = function (index) {
-        const el = document.getElementById(`equipamento-${index}`);
-        if (el) el.remove();
-    };
+    // Assinaturas
+    const sigs = [
+      { label: 'ASSINATURA DO INSPETOR', data: c.assinatura },
+      { label: 'ASSINATURA DO CLIENTE',  data: c.assinaturaCliente }
+    ];
+    sigs.forEach(sig => {
+      if (!sig.data) return;
+      chk(24); bg(y-2, 24);
+      sec(sig.label+':', y); y += 5;
+      try { doc.addImage(sig.data, 'PNG', m, y, 40, 15); } catch(e){}
+      y += 19;
+    });
 
-    // ── Comprime imagem via Canvas antes de armazenar ──
-    function compressImage(file, maxWidth, maxHeight, quality) {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onerror = reject;
-            reader.onload = e => {
-                const img = new Image();
-                img.onerror = reject;
-                img.onload = () => {
-                    let w = img.width, h = img.height;
-                    if (w > maxWidth)  { h = Math.round(h * maxWidth / w);  w = maxWidth; }
-                    if (h > maxHeight) { w = Math.round(w * maxHeight / h); h = maxHeight; }
-                    const canvas = document.createElement('canvas');
-                    canvas.width = w; canvas.height = h;
-                    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-                    resolve(canvas.toDataURL('image/jpeg', quality));
-                };
-                img.src = e.target.result;
-            };
-            reader.readAsDataURL(file);
-        });
-    }
-
-    function addPhotos() {
-        const input = document.getElementById('foto');
-        const container = document.getElementById('fotos');
-        if (!input.files || input.files.length === 0) return;
-
-        const MAX_FOTOS = 10;
-        if (fotosTemp.length >= MAX_FOTOS) {
-            showNotification(`Máximo de ${MAX_FOTOS} fotos por atendimento.`, 'error');
-            input.value = '';
-            return;
+    // Fotos
+    if (c.fotos?.length) {
+      const fw=42, fh=42, esp=2;
+      const fpl = Math.floor((W-2*m)/(fw+esp));
+      c.fotos.forEach((foto,i) => {
+        if (i===0 || i%(fpl*3)===0) {
+          if (i>0) { doc.addPage(); pages++; y=m; }
+          else chk(15);
+          doc.setFontSize(12); doc.setTextColor(255,153,0);
+          doc.text('REGISTRO FOTOGRÁFICO', W/2, y, {align:'center'}); y+=8;
         }
-
-        const arquivos = Array.from(input.files).slice(0, MAX_FOTOS - fotosTemp.length);
-
-        arquivos.forEach(file => {
-            if (!file.type.startsWith('image/')) return;
-
-            compressImage(file, 800, 800, 0.65).then(base64 => {
-                fotosTemp.push({ nome: file.name, base64, tipo: 'image/jpeg' });
-
-                const item = document.createElement('div');
-                item.className = 'photo-item';
-                const img = document.createElement('img');
-                img.src = base64;
-                const btn = document.createElement('button');
-                btn.className = 'remove-photo';
-                btn.innerHTML = '×';
-                btn.onclick = () => {
-                    container.removeChild(item);
-                    const idx = fotosTemp.findIndex(f => f.base64 === base64);
-                    if (idx !== -1) fotosTemp.splice(idx, 1);
-                    updatePhotoCount();
-                };
-                item.appendChild(img);
-                item.appendChild(btn);
-                container.appendChild(item);
-                updatePhotoCount();
-            }).catch(() => {
-                showNotification(`Erro ao processar ${file.name}`, 'error');
-            });
-        });
-
-        input.value = '';
-    }
-
-    function updatePhotoCount() {
-        document.getElementById('photo-count').innerHTML = `<span>📁</span> ${fotosTemp.length} foto(s) selecionada(s)`;
-    }
-
-    function clearForm() {
-        ['inspetor1', 'inspetor2', 'veiculo-placa', 'cliente', 'observacoes'].forEach(id => document.getElementById(id).value = '');
-        document.getElementById('data-atendimento').value = new Date().toISOString().split('T')[0];
-        document.getElementById('equipamentos-container').innerHTML = '';
-        equipamentoCount = 1;
-        const el = document.createElement('div');
-        el.innerHTML = getEquipamentoTemplate(equipamentoCount);
-        document.getElementById('equipamentos-container').appendChild(el);
-        equipamentoCount++;
-        document.querySelectorAll('input[name="servicos"]').forEach(cb => cb.checked = false);
-        document.querySelectorAll('#inspecao-itens input[type="radio"]').forEach(r => r.checked = false);
-        document.querySelectorAll('input[name="status"]').forEach(r => r.checked = false);
-        signaturePad.clear();
-        document.getElementById('fotos').innerHTML = '';
-        fotosTemp = [];
-        updatePhotoCount();
-        showNotification('Formulário limpo!');
-    }
-
-    function collectChecklistData() {
-        const equipamentos = [];
-        document.querySelectorAll('.equipamento-card').forEach(item => {
-            equipamentos.push({
-                serie: item.querySelector('.equipamento-serie')?.value || '',
-                modelo: item.querySelector('.equipamento-modelo')?.value || '',
-                certData: item.querySelector('.equipamento-cert-data')?.value || '',
-                eslinga: item.querySelector('.equipamento-eslinga')?.value || '',
-                eslingaData: item.querySelector('.equipamento-eslinga-data')?.value || '',
-                obs: item.querySelector('.equipamento-obs')?.value || ''
-            });
-        });
-        const servicos = [...document.querySelectorAll('input[name="servicos"]:checked')].map(cb => cb.value);
-        const respostasInspecao = {};
-        document.querySelectorAll('#inspecao-itens .inspection-item').forEach((item, i) => {
-            respostasInspecao[`pergunta_${i + 1}`] = {
-                pergunta: item.querySelector('.inspection-question').textContent.trim(),
-                resposta: item.querySelector('input[type="radio"]:checked')?.value || 'NÃO RESPONDIDO'
-            };
-        });
-        return {
-            id: 'ATD' + Date.now(),
-            inspetor1: document.getElementById('inspetor1').value,
-            inspetor2: document.getElementById('inspetor2').value,
-            data: document.getElementById('data-atendimento').value,
-            veiculo: document.getElementById('veiculo-placa').value,
-            cliente: document.getElementById('cliente').value,
-            equipamentos, servicos, respostasInspecao,
-            observacoes: document.getElementById('observacoes').value,
-            status: document.querySelector('input[name="status"]:checked')?.value || 'PENDENTE',
-            assinatura: signaturePad.isEmpty() ? '' : signaturePad.toDataURL(),
-            fotos: fotosTemp.map(f => ({ nome: f.nome, base64: f.base64, tipo: f.tipo })),
-            timestamp: new Date().toISOString()
-        };
-    }
-
-    function validateForm() {
-        const checks = [
-            [document.getElementById('inspetor1').value.trim(), 'Informe o nome do inspetor!'],
-            [document.getElementById('data-atendimento').value, 'Informe a data do atendimento!'],
-            [document.getElementById('veiculo-placa').value.trim(), 'Informe o veículo/placa!'],
-            [document.getElementById('cliente').value.trim(), 'Informe o nome do cliente!']
-        ];
-        for (const [val, msg] of checks) {
-            if (!val) { showNotification(msg, 'error'); return false; }
-        }
-        return true;
-    }
-
-    function saveChecklist() {
-        if (!validateForm()) return;
-        const data = collectChecklistData();
-        const btn = document.getElementById('salvar');
-        btn.disabled = true;
-        btn.innerHTML = '<span>⏳</span> Salvando...';
-
-        dbSaveChecklist(data).then(() => {
-            checklists.push(data);
-            showNotification('Checklist salvo com sucesso!');
-            setTimeout(() => generatePDF(data.id), 500);
-            updateHistoryList();
-            clearForm();
-        }).catch(e => {
-            showNotification('Erro ao salvar: ' + e.message, 'error');
-        }).finally(() => {
-            btn.disabled = false;
-            btn.innerHTML = '<span>💾</span> Salvar Checklist';
-        });
-    }
-
-    // Migra dados antigos do localStorage para o IndexedDB (roda uma vez)
-    async function migrateFromLocalStorage() {
-        const OLD_KEY = 'atendimentosExternosData';
-        const migrated = localStorage.getItem('idb_migrated');
-        if (migrated) return;
+        const linha = Math.floor((i%(fpl*3))/fpl);
+        const col   = i % fpl;
+        const xPos  = m + col*(fw+esp);
+        const yFoto = y + linha*(fh+esp);
         try {
-            const raw = localStorage.getItem(OLD_KEY);
-            if (raw) {
-                const old = JSON.parse(raw);
-                for (const item of old) await dbSaveChecklist(item);
-                localStorage.removeItem(OLD_KEY);
-                console.log(`Migrados ${old.length} registros do localStorage para IndexedDB.`);
-            }
-            localStorage.setItem('idb_migrated', '1');
-        } catch(e) { console.warn('Migração falhou:', e); }
+          if (foto?.base64?.startsWith('data:image')) {
+            const fmt = foto.base64.includes('image/png')?'PNG':'JPEG';
+            doc.addImage(foto.base64, fmt, xPos, yFoto, fw, fh);
+            doc.setDrawColor(200,200,200); doc.rect(xPos,yFoto,fw,fh);
+            doc.setFontSize(6); doc.setFillColor(0,0,0);
+            doc.rect(xPos+fw-8,yFoto,8,5,'F');
+            doc.setTextColor(255,255,255);
+            doc.text(`${i+1}`, xPos+fw-5, yFoto+3.5);
+          }
+        } catch(e){}
+      });
     }
 
-    window.generatePDF = function (id) {
-        const checklist = checklists.find(c => c.id === id);
-        if (!checklist) { showNotification('Checklist não encontrado!', 'error'); return; }
-        try {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-            const pageWidth = doc.internal.pageSize.getWidth();
-            const pageHeight = doc.internal.pageSize.getHeight();
-            const margin = 15;
-            let yPos = margin;
-            let pageCount = 1;
-
-            function checkSpace(needed) {
-                if (yPos + needed > pageHeight - margin) {
-                    doc.addPage(); pageCount++; yPos = margin; return true;
-                }
-                return false;
-            }
-
-            function drawSectionBackground(yStart, height) {
-                doc.setFillColor(245, 245, 245);
-                doc.rect(margin - 2, yStart - 2, pageWidth - 2 * margin + 4, height + 4, 'F');
-                doc.setDrawColor(200, 200, 200);
-                doc.rect(margin - 2, yStart - 2, pageWidth - 2 * margin + 4, height + 4, 'S');
-            }
-
-            doc.setFillColor(255, 204, 0);
-            doc.rect(margin, 5, 30, 8, 'F');
-            doc.setFontSize(7); doc.setTextColor(51, 51, 51);
-            doc.text('TIGER RENTANK', margin + 15, 10, { align: 'center' });
-            doc.setFontSize(14);
-            doc.text('ATENDIMENTO EXTERNO', pageWidth / 2, 22, { align: 'center' });
-
-            yPos = 30;
-            doc.setFontSize(9); doc.setTextColor(0, 0, 0);
-            doc.text(`Inspetor 1: ${checklist.inspetor1}`, margin, yPos);
-            doc.text(`Inspetor 2: ${checklist.inspetor2 || '---'}`, margin, yPos + 4);
-            doc.text(`Data: ${checklist.data}`, margin, yPos + 8);
-            doc.text(`Veículo: ${checklist.veiculo}`, margin + 80, yPos);
-            doc.text(`Cliente: ${checklist.cliente}`, margin + 80, yPos + 4);
-
-            yPos += 18;
-            let sectionStart = yPos - 2;
-            let eqs = checklist.equipamentos || [];
-            drawSectionBackground(sectionStart, 10 + eqs.length * 18);
-            doc.setFontSize(11); doc.setTextColor(255, 153, 0);
-            doc.text('EQUIPAMENTOS:', margin, yPos); yPos += 5;
-            eqs.forEach((eq, i) => {
-                checkSpace(20);
-                doc.setFontSize(8); doc.setTextColor(0, 0, 0);
-                doc.text(`Equip. ${i + 1}: Série: ${eq.serie || '---'} | Modelo: ${eq.modelo || '---'}`, margin + 2, yPos);
-                doc.text(`Cert: ${eq.certData || '---'} | Eslinga: ${eq.eslinga || '---'} | Cert Eslinga: ${eq.eslingaData || '---'}`, margin + 4, yPos + 4);
-                if (eq.obs) doc.text(`Obs: ${eq.obs}`, margin + 4, yPos + 8);
-                yPos += 14;
-            });
-            yPos += 5;
-
-            checkSpace(10);
-            sectionStart = yPos - 2;
-            drawSectionBackground(sectionStart, 10 + (checklist.servicos?.length || 1) * 4);
-            doc.setFontSize(11); doc.setTextColor(255, 153, 0);
-            doc.text('SERVIÇOS:', margin, yPos); yPos += 5;
-            doc.setFontSize(8); doc.setTextColor(0, 0, 0);
-            if (checklist.servicos?.length > 0) {
-                checklist.servicos.forEach(s => { checkSpace(4); doc.text(`• ${s}`, margin + 3, yPos); yPos += 4; });
-            } else { doc.text('Nenhum serviço selecionado', margin, yPos); yPos += 5; }
-            yPos += 3;
-
-            checkSpace(10);
-            sectionStart = yPos - 2;
-            let insp = Object.values(checklist.respostasInspecao || {});
-            let estH = 10;
-            insp.forEach(i => { estH += doc.splitTextToSize(i.pergunta, pageWidth - 2 * margin - 10).length * 3 + 5; });
-            drawSectionBackground(sectionStart, estH);
-            doc.setFontSize(11); doc.setTextColor(255, 153, 0);
-            doc.text('INSPEÇÃO:', margin, yPos); yPos += 5;
-            insp.forEach(item => {
-                checkSpace(10);
-                doc.setFontSize(7); doc.setTextColor(0, 0, 0);
-                const lines = doc.splitTextToSize(item.pergunta, pageWidth - 2 * margin - 10);
-                doc.text(lines, margin + 3, yPos); yPos += lines.length * 3;
-                doc.setFont(undefined, 'bold'); doc.setTextColor(0, 102, 204);
-                doc.text(`Resposta: ${item.resposta}`, margin + 5, yPos);
-                doc.setFont(undefined, 'normal'); doc.setTextColor(0, 0, 0); yPos += 5;
-            });
-
-            yPos += 3; checkSpace(15);
-            sectionStart = yPos - 2;
-            let obsL = doc.splitTextToSize(checklist.observacoes || '---', pageWidth - 2 * margin);
-            drawSectionBackground(sectionStart, 10 + obsL.length * 3 + 8);
-            doc.setFontSize(11); doc.setTextColor(255, 153, 0);
-            doc.text('OBSERVAÇÕES:', margin, yPos); yPos += 5;
-            doc.setFontSize(8); doc.setTextColor(0, 0, 0);
-            doc.text(obsL, margin, yPos); yPos += obsL.length * 3 + 3;
-            doc.setFontSize(9); doc.setFont(undefined, 'bold');
-            const sc = checklist.status === 'APROVADO' ? [76, 175, 80] : checklist.status === 'REPROVADO' ? [244, 67, 54] : [255, 152, 0];
-            doc.setTextColor(...sc);
-            doc.text(`STATUS: ${checklist.status}`, margin, yPos);
-            doc.setTextColor(0, 0, 0); doc.setFont(undefined, 'normal'); yPos += 5;
-
-            if (checklist.assinatura) {
-                checkSpace(22);
-                drawSectionBackground(yPos - 2, 22);
-                doc.setFontSize(11); doc.setTextColor(255, 153, 0);
-                doc.text('ASSINATURA:', margin, yPos); yPos += 5;
-                try { doc.addImage(checklist.assinatura, 'PNG', margin, yPos, 40, 15); yPos += 18; } catch (e) { }
-            }
-
-            if (checklist.fotos?.length > 0) {
-                const fw = 40, fh = 40, esp = 2;
-                const fpl = Math.floor((pageWidth - 2 * margin) / (fw + esp));
-                for (let i = 0; i < checklist.fotos.length; i++) {
-                    if (i === 0 || i % (fpl * 3) === 0) {
-                        if (i > 0) { doc.addPage(); pageCount++; yPos = margin; } else checkSpace(15);
-                        doc.setFontSize(12); doc.setTextColor(255, 153, 0);
-                        doc.text('REGISTRO FOTOGRÁFICO', pageWidth / 2, yPos, { align: 'center' }); yPos += 8;
-                    }
-                    const linha = Math.floor((i % (fpl * 3)) / fpl);
-                    const col = i % fpl;
-                    const xPos = margin + col * (fw + esp);
-                    const yFoto = yPos + linha * (fh + esp);
-                    try {
-                        const foto = checklist.fotos[i];
-                        if (foto?.base64?.startsWith('data:image')) {
-                            const fmt = foto.base64.includes('image/png') ? 'PNG' : 'JPEG';
-                            doc.addImage(foto.base64, fmt, xPos, yFoto, fw, fh);
-                            doc.setDrawColor(200, 200, 200);
-                            doc.rect(xPos, yFoto, fw, fh);
-                        }
-                    } catch (e) { }
-                }
-            }
-
-            for (let i = 1; i <= pageCount; i++) {
-                doc.setPage(i); doc.setFontSize(7); doc.setTextColor(128, 128, 128);
-                doc.text(`Página ${i} de ${pageCount}`, pageWidth - margin, pageHeight - 8, { align: 'right' });
-            }
-            doc.save(`atendimento_${checklist.cliente.replace(/\s+/g, '_')}_${checklist.data}.pdf`);
-            showNotification('PDF gerado com sucesso!');
-        } catch (e) {
-            showNotification('Erro ao gerar PDF: ' + e.message, 'error');
-        }
-    };
-
-    function updateStorageIndicator() {
-        const el = document.getElementById('storage-indicator');
-        if (!el) return;
-        const totalRegistros = checklists.length;
-        const totalFotos = checklists.reduce((acc, c) => acc + (c.fotos ? c.fotos.length : 0), 0);
-        const usedKB = getStorageSizeKB();
-        // IndexedDB não tem limite fixo — usa cota do dispositivo (geralmente centenas de MB)
-        // Mostramos apenas uso estimado em memória
-        el.innerHTML = `
-            <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:12px 14px;">
-                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
-                    <span style="font-size:12px;color:var(--text-muted);">💾 Armazenamento (IndexedDB)</span>
-                    <span style="font-size:12px;font-weight:700;color:var(--success);">✓ Sem limite fixo</span>
-                </div>
-                <div style="display:flex;gap:16px;margin-top:8px;flex-wrap:wrap;">
-                    <span style="font-size:12px;color:var(--text-muted);">📋 <b style="color:var(--text)">${totalRegistros}</b> atendimentos</span>
-                    <span style="font-size:12px;color:var(--text-muted);">📷 <b style="color:var(--text)">${totalFotos}</b> fotos</span>
-                    <span style="font-size:12px;color:var(--text-muted);">📦 ~<b style="color:var(--text)">${usedKB} KB</b> em memória</span>
-                </div>
-            </div>`;
+    // Paginação
+    for (let p=1; p<=pages; p++) {
+      doc.setPage(p); doc.setFontSize(7); doc.setTextColor(150,150,150);
+      doc.text(`Página ${p} de ${pages}`, W-m, H-7, {align:'right'});
+      doc.text(`Tiger Rentank — Atendimento Externo`, m, H-7);
     }
 
-    function showNotification(message, type = 'success') {
-        const notif = document.getElementById('notification');
-        document.getElementById('notif-text').textContent = message;
-        document.getElementById('notif-icon').textContent = type === 'error' ? '✕' : '✓';
-        notif.className = 'notification' + (type === 'error' ? ' error' : '');
-        clearTimeout(notif._timer);
-        notif._timer = setTimeout(() => notif.classList.add('hidden'), 3500);
-    }
+    doc.save(`atendimento_${c.cliente.replace(/\s+/g,'_')}_${c.data}.pdf`);
+    showNotification('PDF gerado!');
+  } catch(e) {
+    showNotification('Erro PDF: '+e.message,'error');
+  }
+};
 
-    function switchTab(tabId) {
-        document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-        document.querySelector(`[data-tab="${tabId}"]`).classList.add('active');
-        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-        document.getElementById(tabId).classList.add('active');
-        if (tabId === 'historico') { updateHistoryList(); updateStorageIndicator(); }
-    }
+// ════════════════════════════════════════════════
+//  UTILITÁRIOS
+// ════════════════════════════════════════════════
+function switchTab(tabId) {
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.querySelector(`[data-tab="${tabId}"]`).classList.add('active');
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  document.getElementById(tabId).classList.add('active');
+  document.getElementById('progress-wrap').style.display = tabId==='checklist' ? 'flex' : 'none';
+  if (tabId==='historico') updateHistoryList();
+  if (tabId==='dashboard') updateDashboard();
+}
 
-    function initializeSignaturePad() {
-        const canvas = document.getElementById('signature-canvas');
-        function setup(c) {
-            const r = Math.max(window.devicePixelRatio || 1, 1);
-            c.width = c.offsetWidth * r;
-            c.height = c.offsetHeight * r;
-            c.getContext('2d').scale(r, r);
-        }
-        setup(canvas);
-        signaturePad = new SignaturePad(canvas, { backgroundColor: 'rgb(255,255,255)' });
-        window.addEventListener('resize', () => { setup(canvas); signaturePad.clear(); });
-    }
-
-    function updateHistoryList() {
-        const list = document.getElementById('history-list');
-        list.innerHTML = '';
-        if (!checklists.length) {
-            list.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📂</div><p>Nenhum atendimento registrado ainda.</p></div>`;
-            return;
-        }
-        const filterStatus = document.getElementById('filter-status').value;
-        const filterDate = document.getElementById('filter-date').value;
-        const filtered = checklists
-            .filter(item => {
-                if (filterStatus !== 'all' && item.status !== filterStatus) return false;
-                if (filterDate && item.data !== filterDate) return false;
-                return true;
-            })
-            .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-
-        if (!filtered.length) {
-            list.innerHTML = `<div class="empty-state"><div class="empty-state-icon">🔍</div><p>Nenhum atendimento encontrado com os filtros selecionados.</p></div>`;
-            return;
-        }
-
-        filtered.forEach(item => {
-            const badgeClass = item.status === 'APROVADO' ? 'badge-approved' : item.status === 'REPROVADO' ? 'badge-rejected' : 'badge-pending';
-            const card = document.createElement('div');
-            card.className = 'history-card';
-            card.innerHTML = `
-                <div class="history-info">
-                    <div class="history-client">${item.cliente}</div>
-                    <div class="history-meta">
-                        <span>📅 ${item.data}</span>
-                        <span class="meta-dot">·</span>
-                        <span>👤 ${item.inspetor1}</span>
-                        <span class="meta-dot">·</span>
-                        <span>🚗 ${item.veiculo}</span>
-                        <span class="meta-dot">·</span>
-                        <span>🔧 ${item.equipamentos.length} equip.</span>
-                        <span class="meta-dot">·</span>
-                        <span>📷 ${item.fotos?.length || 0} fotos</span>
-                    </div>
-                    <div style="margin-top:8px;">
-                        <span class="status-badge ${badgeClass}">${item.status}</span>
-                    </div>
-                </div>
-                <div class="history-actions">
-                    <button class="btn btn-primary btn-sm" onclick="generatePDF('${item.id}')">📄 PDF</button>
-                    <button class="btn btn-danger btn-sm" onclick="deleteChecklist('${item.id}')">🗑</button>
-                </div>`;
-            list.appendChild(card);
-        });
-    }
-
-    window.deleteChecklist = function (id) {
-        if (confirm('Excluir este atendimento?')) {
-            dbDeleteChecklist(id).then(() => {
-                checklists = checklists.filter(c => c.id !== id);
-                updateHistoryList();
-                showNotification('Atendimento excluído!');
-            }).catch(() => showNotification('Erro ao excluir.', 'error'));
-        }
-    };
-
-    function clearAllData() {
-        if (confirm('Excluir TODOS os atendimentos? Esta ação não pode ser desfeita!')) {
-            dbClearAll().then(() => {
-                checklists = [];
-                updateHistoryList();
-                updateStorageIndicator();
-                showNotification('Todos os dados foram excluídos!');
-            }).catch(() => showNotification('Erro ao limpar dados.', 'error'));
-        }
-    }
+function showNotification(msg, type='success') {
+  const n = document.getElementById('notification');
+  document.getElementById('notif-icon').textContent = type==='error'?'✕':'✓';
+  document.getElementById('notif-text').textContent  = msg;
+  n.className = 'notification' + (type==='error'?' error':'');
+  clearTimeout(n._t);
+  n._t = setTimeout(() => n.classList.add('hidden'), 3500);
+}
 </script>
 </body>
 </html>
