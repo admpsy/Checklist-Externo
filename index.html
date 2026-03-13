@@ -1227,7 +1227,70 @@
     let signaturePad;
     let equipamentoCount = 1;
     let fotosTemp = [];
-    const STORAGE_KEY = 'atendimentosExternosData';
+    const DB_NAME   = 'TigerRentankDB';
+    const DB_VERSION = 1;
+    const STORE_NAME = 'checklists';
+    let db = null;
+
+    // ═══════════════════════════════════════════════
+    //  IndexedDB — abre/cria o banco
+    // ═══════════════════════════════════════════════
+    function openDB() {
+        return new Promise((resolve, reject) => {
+            if (db) { resolve(db); return; }
+            const req = indexedDB.open(DB_NAME, DB_VERSION);
+            req.onupgradeneeded = e => {
+                const idb = e.target.result;
+                if (!idb.objectStoreNames.contains(STORE_NAME)) {
+                    idb.createObjectStore(STORE_NAME, { keyPath: 'id' });
+                }
+            };
+            req.onsuccess = e => { db = e.target.result; resolve(db); };
+            req.onerror   = e => reject(e.target.error);
+        });
+    }
+
+    function dbSaveChecklist(data) {
+        return openDB().then(idb => new Promise((resolve, reject) => {
+            const tx  = idb.transaction(STORE_NAME, 'readwrite');
+            const req = tx.objectStore(STORE_NAME).put(data);
+            req.onsuccess = () => resolve(true);
+            req.onerror   = e => reject(e.target.error);
+        }));
+    }
+
+    function dbDeleteChecklist(id) {
+        return openDB().then(idb => new Promise((resolve, reject) => {
+            const tx  = idb.transaction(STORE_NAME, 'readwrite');
+            const req = tx.objectStore(STORE_NAME).delete(id);
+            req.onsuccess = () => resolve(true);
+            req.onerror   = e => reject(e.target.error);
+        }));
+    }
+
+    function dbLoadAll() {
+        return openDB().then(idb => new Promise((resolve, reject) => {
+            const tx  = idb.transaction(STORE_NAME, 'readonly');
+            const req = tx.objectStore(STORE_NAME).getAll();
+            req.onsuccess = e => resolve(e.target.result || []);
+            req.onerror   = e => reject(e.target.error);
+        }));
+    }
+
+    function dbClearAll() {
+        return openDB().then(idb => new Promise((resolve, reject) => {
+            const tx  = idb.transaction(STORE_NAME, 'readwrite');
+            const req = tx.objectStore(STORE_NAME).clear();
+            req.onsuccess = () => resolve(true);
+            req.onerror   = e => reject(e.target.error);
+        }));
+    }
+
+    // Estima uso do IndexedDB (aproximado via tamanho dos dados em memória)
+    function getStorageSizeKB() {
+        const json = JSON.stringify(checklists);
+        return Math.round((json.length * 2) / 1024);
+    }
 
     function getEquipamentoTemplate(index) {
         return `
@@ -1267,10 +1330,17 @@
 
     document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('data-atendimento').value = new Date().toISOString().split('T')[0];
-        loadFromLocalStorage();
         initializeSignaturePad();
         setupEventListeners();
-        updateHistoryList();
+
+        // Abre o banco e carrega dados
+        migrateFromLocalStorage().then(() => dbLoadAll()).then(data => {
+            checklists = data;
+            updateHistoryList();
+        }).catch(e => {
+            console.error('Erro ao carregar dados:', e);
+            showNotification('Erro ao carregar histórico.', 'error');
+        });
 
         const container = document.getElementById('equipamentos-container');
         container.innerHTML = '';
@@ -1447,69 +1517,40 @@
 
     function saveChecklist() {
         if (!validateForm()) return;
-        try {
-            const data = collectChecklistData();
+        const data = collectChecklistData();
+        const btn = document.getElementById('salvar');
+        btn.disabled = true;
+        btn.innerHTML = '<span>⏳</span> Salvando...';
+
+        dbSaveChecklist(data).then(() => {
             checklists.push(data);
-            if (saveToLocalStorage()) {
-                showNotification('Checklist salvo com sucesso!');
-                setTimeout(() => generatePDF(data.id), 500);
-                updateHistoryList();
-                clearForm();
-            }
-        } catch (e) {
+            showNotification('Checklist salvo com sucesso!');
+            setTimeout(() => generatePDF(data.id), 500);
+            updateHistoryList();
+            clearForm();
+        }).catch(e => {
             showNotification('Erro ao salvar: ' + e.message, 'error');
-        }
+        }).finally(() => {
+            btn.disabled = false;
+            btn.innerHTML = '<span>💾</span> Salvar Checklist';
+        });
     }
 
-    function saveToLocalStorage() {
-        // Tentativa 1: salvar normalmente
+    // Migra dados antigos do localStorage para o IndexedDB (roda uma vez)
+    async function migrateFromLocalStorage() {
+        const OLD_KEY = 'atendimentosExternosData';
+        const migrated = localStorage.getItem('idb_migrated');
+        if (migrated) return;
         try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(checklists));
-            return true;
-        } catch (e) {
-            if (e.name !== 'QuotaExceededError') { showNotification('Erro ao salvar!', 'error'); return false; }
-        }
-
-        // Tentativa 2: salvar sem fotos do atendimento atual, mas mantendo fotos dos anteriores
-        showNotification('Armazenamento quase cheio. Salvando sem fotos do atendimento atual...', 'error');
-        try {
-            const semFotos = checklists.map((c, i) => {
-                if (i === checklists.length - 1) return { ...c, fotos: [] }; // remove fotos só do último
-                return c;
-            });
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(semFotos));
-            checklists = semFotos;
-            showNotification('Salvo sem fotos. Gere o PDF agora para ter as imagens.', 'error');
-            return true;
-        } catch (e) {}
-
-        // Tentativa 3: salvar sem fotos em NENHUM atendimento
-        try {
-            const semTodasFotos = checklists.map(c => ({ ...c, fotos: [] }));
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(semTodasFotos));
-            checklists = semTodasFotos;
-            showNotification('Espaço crítico! Salvo sem fotos. Exclua atendimentos antigos.', 'error');
-            return true;
-        } catch (e) {
-            showNotification('Impossível salvar. Exclua atendimentos antigos no Histórico.', 'error');
-            return false;
-        }
-    }
-
-    // Retorna o tamanho estimado do localStorage em KB
-    function getStorageSizeKB() {
-        let total = 0;
-        for (const key in localStorage) {
-            if (localStorage.hasOwnProperty(key)) total += localStorage[key].length * 2;
-        }
-        return Math.round(total / 1024);
-    }
-
-    function loadFromLocalStorage() {
-        try {
-            const d = localStorage.getItem(STORAGE_KEY);
-            checklists = d ? JSON.parse(d) : [];
-        } catch { checklists = []; }
+            const raw = localStorage.getItem(OLD_KEY);
+            if (raw) {
+                const old = JSON.parse(raw);
+                for (const item of old) await dbSaveChecklist(item);
+                localStorage.removeItem(OLD_KEY);
+                console.log(`Migrados ${old.length} registros do localStorage para IndexedDB.`);
+            }
+            localStorage.setItem('idb_migrated', '1');
+        } catch(e) { console.warn('Migração falhou:', e); }
     }
 
     window.generatePDF = function (id) {
@@ -1659,23 +1700,22 @@
     function updateStorageIndicator() {
         const el = document.getElementById('storage-indicator');
         if (!el) return;
+        const totalRegistros = checklists.length;
+        const totalFotos = checklists.reduce((acc, c) => acc + (c.fotos ? c.fotos.length : 0), 0);
         const usedKB = getStorageSizeKB();
-        const limitKB = 5120; // ~5MB typical localStorage limit
-        const pct = Math.min(100, Math.round((usedKB / limitKB) * 100));
-        let color = 'var(--success)';
-        let msg = 'Armazenamento OK';
-        if (pct > 80) { color = 'var(--danger)'; msg = 'Armazenamento quase cheio! Exclua registros antigos.'; }
-        else if (pct > 55) { color = 'var(--warning)'; msg = 'Armazenamento moderado'; }
+        // IndexedDB não tem limite fixo — usa cota do dispositivo (geralmente centenas de MB)
+        // Mostramos apenas uso estimado em memória
         el.innerHTML = `
             <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:12px 14px;">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-                    <span style="font-size:12px;color:var(--text-muted);">💾 Armazenamento local</span>
-                    <span style="font-size:12px;font-weight:700;color:${color};">${usedKB} KB / ${limitKB} KB (${pct}%)</span>
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+                    <span style="font-size:12px;color:var(--text-muted);">💾 Armazenamento (IndexedDB)</span>
+                    <span style="font-size:12px;font-weight:700;color:var(--success);">✓ Sem limite fixo</span>
                 </div>
-                <div style="background:var(--bg-input);border-radius:100px;height:6px;overflow:hidden;">
-                    <div style="width:${pct}%;height:100%;background:${color};border-radius:100px;transition:width 0.4s;"></div>
+                <div style="display:flex;gap:16px;margin-top:8px;flex-wrap:wrap;">
+                    <span style="font-size:12px;color:var(--text-muted);">📋 <b style="color:var(--text)">${totalRegistros}</b> atendimentos</span>
+                    <span style="font-size:12px;color:var(--text-muted);">📷 <b style="color:var(--text)">${totalFotos}</b> fotos</span>
+                    <span style="font-size:12px;color:var(--text-muted);">📦 ~<b style="color:var(--text)">${usedKB} KB</b> em memória</span>
                 </div>
-                ${pct > 55 ? `<p style="font-size:11px;color:${color};margin-top:6px;">${msg}</p>` : ''}
             </div>`;
     }
 
@@ -1763,15 +1803,22 @@
 
     window.deleteChecklist = function (id) {
         if (confirm('Excluir este atendimento?')) {
-            checklists = checklists.filter(c => c.id !== id);
-            if (saveToLocalStorage()) { updateHistoryList(); showNotification('Atendimento excluído!'); }
+            dbDeleteChecklist(id).then(() => {
+                checklists = checklists.filter(c => c.id !== id);
+                updateHistoryList();
+                showNotification('Atendimento excluído!');
+            }).catch(() => showNotification('Erro ao excluir.', 'error'));
         }
     };
 
     function clearAllData() {
         if (confirm('Excluir TODOS os atendimentos? Esta ação não pode ser desfeita!')) {
-            checklists = [];
-            if (saveToLocalStorage()) { updateHistoryList(); showNotification('Todos os dados foram excluídos!'); }
+            dbClearAll().then(() => {
+                checklists = [];
+                updateHistoryList();
+                updateStorageIndicator();
+                showNotification('Todos os dados foram excluídos!');
+            }).catch(() => showNotification('Erro ao limpar dados.', 'error'));
         }
     }
 </script>
