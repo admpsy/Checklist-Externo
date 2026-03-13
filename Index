@@ -1,0 +1,1779 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Checklist Digital - Tiger Rentank</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --yellow: #FFCC00;
+            --yellow-dark: #E6B800;
+            --yellow-glow: rgba(255, 204, 0, 0.25);
+            --orange: #FF9900;
+            --bg: #0F0F0F;
+            --bg-card: #1A1A1A;
+            --bg-input: #242424;
+            --bg-section: #1E1E1E;
+            --border: #2E2E2E;
+            --border-active: #3E3E3E;
+            --text: #F0F0F0;
+            --text-muted: #888;
+            --text-dim: #555;
+            --success: #22C55E;
+            --danger: #EF4444;
+            --warning: #F97316;
+            --info: #3B82F6;
+            --radius: 12px;
+            --radius-sm: 8px;
+            --radius-lg: 16px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            line-height: 1.5;
+            min-height: 100vh;
+        }
+
+        /* ── HEADER ── */
+        header {
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border);
+            padding: 0 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            height: 64px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(12px);
+        }
+
+        .logo-badge {
+            background: var(--yellow);
+            color: #111;
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 11px;
+            letter-spacing: 0.08em;
+            padding: 6px 12px;
+            border-radius: 6px;
+            white-space: nowrap;
+        }
+
+        .header-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text);
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+        }
+
+        .header-right { display: flex; align-items: center; gap: 8px; }
+
+        /* ── NAV TABS ── */
+        .nav-bar {
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border);
+            padding: 0 24px;
+            display: flex;
+            gap: 4px;
+            overflow-x: auto;
+        }
+
+        .nav-tab {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0 20px;
+            height: 48px;
+            font-family: 'Syne', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-decoration: none;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+            white-space: nowrap;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .nav-tab:hover { color: var(--text); }
+        .nav-tab.active {
+            color: var(--yellow);
+            border-bottom-color: var(--yellow);
+        }
+
+        /* ── LAYOUT ── */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 24px 16px;
+        }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* ── SECTION CARDS ── */
+        .section-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            margin-bottom: 16px;
+            transition: border-color 0.2s;
+        }
+
+        .section-card:hover { border-color: var(--border-active); }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .section-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--yellow-glow);
+            border: 1px solid rgba(255,204,0,0.3);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .section-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--yellow);
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+
+        /* ── PAGE TITLE ── */
+        .page-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 24px;
+            font-weight: 800;
+            margin-bottom: 6px;
+            color: var(--text);
+        }
+
+        .page-subtitle {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 24px;
+        }
+
+        /* ── FORM GRID ── */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .form-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+        .form-grid.full { grid-template-columns: 1fr; }
+
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-group.span-2 { grid-column: span 2; }
+
+        label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        input[type="text"],
+        input[type="date"],
+        select,
+        textarea {
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text);
+            padding: 10px 14px;
+            font-size: 14px;
+            font-family: 'DM Sans', sans-serif;
+            width: 100%;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            outline: none;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--yellow);
+            box-shadow: 0 0 0 3px var(--yellow-glow);
+        }
+
+        textarea { resize: vertical; min-height: 80px; }
+
+        /* ── BUTTONS ── */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-family: 'Syne', sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+            transition: all 0.15s;
+            text-transform: uppercase;
+            white-space: nowrap;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .btn:active { transform: scale(0.97); }
+
+        .btn-primary {
+            background: var(--yellow);
+            color: #111;
+        }
+        .btn-primary:hover { background: var(--yellow-dark); box-shadow: 0 4px 20px var(--yellow-glow); }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+        .btn-success:hover { background: #16a34a; box-shadow: 0 4px 16px rgba(34,197,94,0.3); }
+
+        .btn-danger {
+            background: transparent;
+            color: var(--danger);
+            border: 1px solid rgba(239,68,68,0.3);
+        }
+        .btn-danger:hover { background: rgba(239,68,68,0.1); border-color: var(--danger); }
+
+        .btn-warning {
+            background: transparent;
+            color: var(--text-muted);
+            border: 1px solid var(--border);
+        }
+        .btn-warning:hover { background: var(--bg-input); border-color: var(--border-active); color: var(--text); }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--text-muted);
+            border: 1px solid var(--border);
+        }
+        .btn-ghost:hover { background: var(--bg-input); color: var(--text); }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 11px;
+            border-radius: 6px;
+        }
+
+        .btn-icon {
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            border-radius: 6px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+
+        /* ── RADIO / CHECKBOX GROUPS ── */
+        .radio-group {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .radio-pill {
+            display: flex;
+            align-items: center;
+        }
+
+        .radio-pill input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+            pointer-events: none;
+        }
+
+        .radio-pill label {
+            padding: 8px 18px;
+            border-radius: 100px;
+            border: 1.5px solid var(--border-active);
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            transition: background 0.15s, color 0.15s, border-color 0.15s, transform 0.1s;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .radio-pill label:active {
+            transform: scale(0.94);
+            opacity: 0.85;
+        }
+
+        .radio-pill input:checked + label {
+            background: var(--yellow);
+            color: #111;
+            border-color: var(--yellow);
+            box-shadow: 0 0 0 3px var(--yellow-glow);
+        }
+
+        .radio-pill.danger input:checked + label {
+            background: var(--danger);
+            color: white;
+            border-color: var(--danger);
+            box-shadow: 0 0 0 3px rgba(239,68,68,0.2);
+        }
+
+        .radio-pill.success input:checked + label {
+            background: var(--success);
+            color: white;
+            border-color: var(--success);
+            box-shadow: 0 0 0 3px rgba(34,197,94,0.2);
+        }
+
+        /* ── INSPECTION ITEMS ── */
+        .inspection-item {
+            background: var(--bg-section);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 14px 16px;
+            margin-bottom: 8px;
+            transition: border-color 0.2s;
+        }
+
+        .inspection-item:hover { border-color: var(--border-active); }
+
+        .inspection-question {
+            font-size: 13px;
+            color: var(--text);
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+
+        /* ── SERVICES GRID ── */
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 8px;
+        }
+
+        .service-checkbox { display: none; }
+
+        .service-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            background: var(--bg-section);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            transition: all 0.15s;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .service-label::before {
+            content: '';
+            width: 16px;
+            height: 16px;
+            border: 1.5px solid var(--border-active);
+            border-radius: 4px;
+            flex-shrink: 0;
+            transition: all 0.15s;
+        }
+
+        .service-checkbox:checked + .service-label {
+            background: rgba(255,204,0,0.08);
+            border-color: rgba(255,204,0,0.4);
+            color: var(--yellow);
+        }
+
+        .service-checkbox:checked + .service-label::before {
+            background: var(--yellow);
+            border-color: var(--yellow);
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2 6l3 3 5-5' stroke='%23111' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+            background-size: 10px;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        /* ── EQUIPAMENTO CARD ── */
+        .equipamento-card {
+            background: var(--bg-section);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 16px;
+            margin-bottom: 12px;
+            position: relative;
+        }
+
+        .equipamento-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+        }
+
+        .equipamento-badge {
+            background: var(--yellow-glow);
+            border: 1px solid rgba(255,204,0,0.25);
+            color: var(--yellow);
+            font-family: 'Syne', sans-serif;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            padding: 4px 10px;
+            border-radius: 6px;
+            text-transform: uppercase;
+        }
+
+        /* ── SIGNATURE ── */
+        .signature-wrap {
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: #fff;
+            height: 130px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .signature-wrap canvas { width: 100%; height: 100%; }
+
+        /* ── PHOTO ── */
+        .photo-upload-area {
+            border: 1.5px dashed var(--border-active);
+            border-radius: var(--radius-sm);
+            padding: 16px;
+            background: var(--bg-section);
+        }
+
+        .photo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .photo-item {
+            width: 80px;
+            height: 80px;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid var(--border);
+        }
+
+        .photo-item img { width: 100%; height: 100%; object-fit: cover; }
+
+        .remove-photo {
+            position: absolute;
+            top: 3px; right: 3px;
+            width: 20px; height: 20px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            font-size: 13px;
+            line-height: 1;
+        }
+
+        .remove-photo:hover { background: var(--danger); }
+
+        .photo-count-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 100px;
+            padding: 3px 10px;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 8px;
+        }
+
+        /* ── STATUS BADGE ── */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 10px;
+            border-radius: 100px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .status-badge::before {
+            content: '';
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        .badge-approved { background: rgba(34,197,94,0.15); color: var(--success); }
+        .badge-rejected { background: rgba(239,68,68,0.15); color: var(--danger); }
+        .badge-pending { background: rgba(249,115,22,0.15); color: var(--warning); }
+
+        /* ── HISTORY ── */
+        .history-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            transition: border-color 0.2s;
+        }
+
+        .history-card:hover { border-color: var(--border-active); }
+
+        .history-info { flex: 1; }
+
+        .history-client {
+            font-family: 'Syne', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+
+        .history-meta {
+            font-size: 12px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .meta-dot { color: var(--text-dim); }
+
+        .history-actions { display: flex; gap: 6px; align-items: center; }
+
+        /* ── FILTERS ── */
+        .filters-bar {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+            align-items: flex-end;
+        }
+
+        .filter-group { display: flex; flex-direction: column; gap: 4px; min-width: 130px; }
+        .filter-group label { font-size: 11px; color: var(--text-muted); }
+        .filter-group select,
+        .filter-group input { padding: 8px 12px; font-size: 13px; }
+
+        /* ── NOTIFICATION ── */
+        .notification {
+            position: fixed;
+            bottom: 24px; right: 24px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--success);
+            color: var(--text);
+            padding: 12px 20px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 500;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            z-index: 999;
+            transform: translateY(0);
+            opacity: 1;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            max-width: 320px;
+        }
+
+        .notification.hidden {
+            opacity: 0;
+            transform: translateY(12px);
+            pointer-events: none;
+        }
+
+        .notification.error { border-left-color: var(--danger); }
+
+        /* ── EMPTY STATE ── */
+        .empty-state {
+            text-align: center;
+            padding: 48px 24px;
+            color: var(--text-muted);
+        }
+
+        .empty-state-icon {
+            font-size: 40px;
+            margin-bottom: 12px;
+            opacity: 0.4;
+        }
+
+        .empty-state p { font-size: 14px; }
+
+        /* ── DIVIDER ── */
+        .divider {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 20px 0;
+        }
+
+        /* ── FILE INPUT ── */
+        input[type="file"] {
+            display: none;
+        }
+
+        /* ── TOUCH TARGET GLOBAL ── */
+        @media (pointer: coarse) {
+            .btn { min-height: 44px; }
+            .radio-pill label { min-height: 40px; display: flex; align-items: center; }
+            .service-label { min-height: 44px; }
+            input, select, textarea { min-height: 44px; font-size: 16px !important; /* prevents iOS zoom */ }
+            .nav-tab { min-height: 48px; }
+        }
+
+        /* ── TABLET (481px – 768px) ── */
+        @media (min-width: 481px) and (max-width: 768px) {
+            header {
+                padding: 0 20px;
+                height: 56px;
+            }
+            .header-title { font-size: 13px; }
+
+            .nav-bar { padding: 0 16px; }
+            .nav-tab { padding: 0 16px; font-size: 13px; height: 44px; }
+
+            .container { padding: 20px 16px; }
+
+            .page-title { font-size: 20px; }
+            .section-card { padding: 20px; }
+
+            /* 2 colunas no tablet */
+            .form-grid { grid-template-columns: 1fr 1fr; }
+            .form-grid.cols-3 { grid-template-columns: 1fr 1fr; }
+            .form-group.span-2 { grid-column: span 2; }
+
+            .services-grid { grid-template-columns: 1fr 1fr; }
+
+            .history-card {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+            .history-actions {
+                align-self: stretch;
+                justify-content: flex-end;
+            }
+            .history-actions .btn { flex: 1; justify-content: center; }
+
+            .filters-bar { gap: 8px; }
+            .filter-group { min-width: 140px; }
+
+            .btn-group { gap: 10px; }
+            .btn-group .btn { flex: 1; justify-content: center; }
+
+            .photo-grid { grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); }
+            .photo-item { width: 100%; height: 90px; }
+        }
+
+        /* ── MOBILE GRANDE (361px – 480px) ── */
+        @media (min-width: 361px) and (max-width: 480px) {
+            header {
+                padding: 0 14px;
+                height: 52px;
+            }
+            .header-title { font-size: 11px; letter-spacing: 0.02em; }
+            .logo-badge { font-size: 10px; padding: 5px 10px; }
+            .header-right span { display: none; }
+
+            .nav-bar { padding: 0 8px; }
+            .nav-tab {
+                padding: 0 14px;
+                font-size: 12px;
+                height: 44px;
+                gap: 5px;
+                flex: 1;
+                justify-content: center;
+            }
+
+            .container { padding: 14px 12px; }
+
+            .page-title { font-size: 18px; }
+            .page-subtitle { font-size: 13px; }
+
+            .section-card { padding: 14px; border-radius: var(--radius); }
+            .section-title { font-size: 12px; }
+            .section-icon { width: 28px; height: 28px; font-size: 13px; }
+
+            /* 1 coluna no mobile */
+            .form-grid { grid-template-columns: 1fr; gap: 12px; }
+            .form-grid.cols-3 { grid-template-columns: 1fr; }
+            .form-group.span-2 { grid-column: span 1; }
+
+            label { font-size: 11px; }
+
+            .services-grid { grid-template-columns: 1fr 1fr; gap: 6px; }
+            .service-label { font-size: 11px; padding: 8px 10px; }
+            .service-label::before { width: 14px; height: 14px; }
+
+            .radio-group { gap: 5px; }
+            .radio-pill label { padding: 6px 12px; font-size: 11px; }
+
+            .inspection-item { padding: 12px; }
+            .inspection-question { font-size: 12px; margin-bottom: 8px; }
+
+            .equipamento-card { padding: 12px; }
+            .equipamento-badge { font-size: 10px; }
+
+            .history-card {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+                padding: 14px;
+            }
+            .history-client { font-size: 14px; }
+            .history-meta { font-size: 11px; gap: 6px; }
+            .meta-dot { display: none; }
+            .history-meta span { background: var(--bg-input); border-radius: 4px; padding: 2px 6px; }
+            .history-actions {
+                align-self: stretch;
+                display: flex;
+                gap: 8px;
+            }
+            .history-actions .btn { flex: 1; justify-content: center; font-size: 12px; }
+
+            .filters-bar { flex-direction: column; gap: 10px; }
+            .filter-group { min-width: 100%; }
+            .filters-bar .btn { align-self: stretch; justify-content: center; }
+
+            .btn-group {
+                flex-direction: column;
+                gap: 8px;
+                margin-bottom: 30px;
+            }
+            .btn-group .btn { width: 100%; justify-content: center; }
+
+            .signature-wrap { height: 150px; }
+
+            .photo-upload-area { padding: 12px; }
+            .photo-grid { grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 6px; }
+            .photo-item { width: 100%; height: 70px; }
+
+            .notification {
+                left: 16px;
+                right: 16px;
+                bottom: 16px;
+                max-width: none;
+            }
+
+            .divider { margin: 16px 0; }
+            .empty-state { padding: 32px 16px; }
+        }
+
+        /* ── MOBILE PEQUENO (≤ 360px) ── */
+        @media (max-width: 360px) {
+            header { padding: 0 10px; height: 50px; }
+            .header-title { display: none; }
+            .logo-badge { font-size: 10px; padding: 5px 8px; }
+            .header-right span { display: none; }
+
+            .nav-bar { padding: 0 4px; }
+            .nav-tab {
+                flex: 1;
+                justify-content: center;
+                padding: 0 8px;
+                font-size: 11px;
+                height: 42px;
+                gap: 4px;
+            }
+
+            .container { padding: 12px 10px; }
+            .page-title { font-size: 16px; }
+            .page-subtitle { font-size: 12px; margin-bottom: 16px; }
+
+            .section-card { padding: 12px; }
+            .form-grid { grid-template-columns: 1fr; gap: 10px; }
+            .form-group.span-2 { grid-column: span 1; }
+
+            .services-grid { grid-template-columns: 1fr; }
+            .service-label { font-size: 12px; }
+
+            .radio-pill label { padding: 6px 10px; font-size: 11px; }
+
+            .inspection-question { font-size: 12px; }
+
+            .btn-group { flex-direction: column; gap: 8px; }
+            .btn-group .btn { width: 100%; justify-content: center; }
+
+            .history-card { padding: 12px; }
+            .history-actions { flex-direction: column; gap: 6px; align-self: stretch; }
+            .history-actions .btn { width: 100%; justify-content: center; }
+
+            .filters-bar { flex-direction: column; }
+            .filter-group { min-width: 100%; }
+            .filters-bar .btn { width: 100%; justify-content: center; }
+
+            .notification { left: 10px; right: 10px; bottom: 10px; max-width: none; font-size: 12px; }
+        }
+
+        /* ── DESKTOP LARGO (≥ 1024px) ── */
+        @media (min-width: 1024px) {
+            .container { max-width: 860px; padding: 32px 24px; }
+            .form-grid { gap: 20px; }
+            .section-card { padding: 28px; }
+            .page-title { font-size: 28px; }
+            .services-grid { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/signature_pad/1.5.3/signature_pad.min.js"></script>
+</head>
+<body>
+
+<div class="notification hidden" id="notification">
+    <span id="notif-icon">✓</span>
+    <span id="notif-text">Checklist registrado!</span>
+</div>
+
+<header>
+    <div class="logo-badge">Tiger Rentank</div>
+    <div class="header-title">Atendimentos Externos</div>
+    <div class="header-right">
+        <div style="width:8px;height:8px;background:var(--success);border-radius:50%;box-shadow:0 0 6px var(--success);"></div>
+        <span style="font-size:12px;color:var(--text-muted);">Online</span>
+    </div>
+</header>
+
+<div class="nav-bar">
+    <a href="#" class="nav-tab active" data-tab="checklist">
+        <span>📋</span> Checklist
+    </a>
+    <a href="#" class="nav-tab" data-tab="historico">
+        <span>📂</span> Histórico
+    </a>
+</div>
+
+<div class="container">
+
+    <!-- ═══ CHECKLIST TAB ═══ -->
+    <div id="checklist" class="tab-content active">
+        <h1 class="page-title">Novo Atendimento</h1>
+        <p class="page-subtitle">Preencha todos os campos obrigatórios para registrar o atendimento externo.</p>
+
+        <!-- DADOS DO ATENDIMENTO -->
+        <div class="section-card">
+            <div class="section-header">
+                <div class="section-icon">👤</div>
+                <h3 class="section-title">Dados do Atendimento</h3>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="inspetor1">Inspeção Tiger 1 *</label>
+                    <input type="text" id="inspetor1" placeholder="Nome do colaborador">
+                </div>
+                <div class="form-group">
+                    <label for="inspetor2">Inspeção Tiger 2</label>
+                    <input type="text" id="inspetor2" placeholder="Nome do segundo colaborador">
+                </div>
+                <div class="form-group">
+                    <label for="data-atendimento">Data do Atendimento *</label>
+                    <input type="date" id="data-atendimento">
+                </div>
+                <div class="form-group">
+                    <label for="veiculo-placa">Veículo / Placa *</label>
+                    <input type="text" id="veiculo-placa" placeholder="Ex: ABC-1234">
+                </div>
+                <div class="form-group span-2">
+                    <label for="cliente">Cliente *</label>
+                    <input type="text" id="cliente" placeholder="Nome completo do cliente">
+                </div>
+            </div>
+        </div>
+
+        <!-- EQUIPAMENTOS -->
+        <div class="section-card">
+            <div class="section-header">
+                <div class="section-icon">🔧</div>
+                <h3 class="section-title">Equipamentos</h3>
+            </div>
+
+            <div id="equipamentos-container"></div>
+
+            <button type="button" class="btn btn-ghost" id="add-equipamento">
+                <span>+</span> Adicionar Equipamento
+            </button>
+        </div>
+
+        <!-- SERVIÇOS REALIZADOS -->
+        <div class="section-card">
+            <div class="section-header">
+                <div class="section-icon">⚙️</div>
+                <h3 class="section-title">Serviço Realizado</h3>
+            </div>
+
+            <div class="services-grid">
+                <input type="checkbox" class="service-checkbox" id="cert-visual" name="servicos" value="CERTIFICAÇÃO VISUAL">
+                <label class="service-label" for="cert-visual">Cert. Visual</label>
+
+                <input type="checkbox" class="service-checkbox" id="cert-remota" name="servicos" value="CERTIFICAÇÃO REMOTA">
+                <label class="service-label" for="cert-remota">Cert. Remota</label>
+
+                <input type="checkbox" class="service-checkbox" id="particula-magnetica" name="servicos" value="PARTÍCULA MAGNÉTICA">
+                <label class="service-label" for="particula-magnetica">Partícula Magnética</label>
+
+                <input type="checkbox" class="service-checkbox" id="liquido-penetrante" name="servicos" value="LÍQUIDO PENETRANTE">
+                <label class="service-label" for="liquido-penetrante">Líquido Penetrante</label>
+
+                <input type="checkbox" class="service-checkbox" id="corrente-parasita" name="servicos" value="CORRENTE PARASITA">
+                <label class="service-label" for="corrente-parasita">Corrente Parasita</label>
+
+                <input type="checkbox" class="service-checkbox" id="manut-preventiva" name="servicos" value="MANUTENÇÃO PREVENTIVA">
+                <label class="service-label" for="manut-preventiva">Manutenção Preventiva</label>
+
+                <input type="checkbox" class="service-checkbox" id="manut-corretiva" name="servicos" value="MANUTENÇÃO CORRETIVA">
+                <label class="service-label" for="manut-corretiva">Manutenção Corretiva</label>
+
+                <input type="checkbox" class="service-checkbox" id="instalacao-gps" name="servicos" value="INSTALAÇÃO DE GPS">
+                <label class="service-label" for="instalacao-gps">Instalação de GPS</label>
+
+                <input type="checkbox" class="service-checkbox" id="substituicao-eslinga" name="servicos" value="SUBSTITUIÇÃO DE ESLINGA">
+                <label class="service-label" for="substituicao-eslinga">Subst. Eslinga</label>
+
+                <input type="checkbox" class="service-checkbox" id="avaliacao-tecnica" name="servicos" value="AVALIAÇÃO TÉCNICA">
+                <label class="service-label" for="avaliacao-tecnica">Avaliação Técnica</label>
+            </div>
+        </div>
+
+        <!-- INSPEÇÃO -->
+        <div class="section-card">
+            <div class="section-header">
+                <div class="section-icon">🔍</div>
+                <h3 class="section-title">Inspeção</h3>
+            </div>
+
+            <div id="inspecao-itens">
+
+                <div class="inspection-item">
+                    <p class="inspection-question">As datas de vencimento dos testes do equipamento estão superiores a 120 dias do vencimento?</p>
+                    <div class="radio-group">
+                        <div class="radio-pill success">
+                            <input type="radio" id="vencimento-120-sim" name="vencimento-120" value="SIM">
+                            <label for="vencimento-120-sim">SIM</label>
+                        </div>
+                        <div class="radio-pill danger">
+                            <input type="radio" id="vencimento-120-nao" name="vencimento-120" value="NÃO">
+                            <label for="vencimento-120-nao">NÃO</label>
+                        </div>
+                        <div class="radio-pill">
+                            <input type="radio" id="vencimento-120-na" name="vencimento-120" value="N/A">
+                            <label for="vencimento-120-na">N/A</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="inspection-item">
+                    <p class="inspection-question">O equipamento está em bom estado, livre de danos na pintura refletiva, deformação ou corrosão excessiva, rasgos e trincas?</p>
+                    <div class="radio-group">
+                        <div class="radio-pill success"><input type="radio" id="bom-estado-sim" name="bom-estado" value="SIM"><label for="bom-estado-sim">SIM</label></div>
+                        <div class="radio-pill danger"><input type="radio" id="bom-estado-nao" name="bom-estado" value="NÃO"><label for="bom-estado-nao">NÃO</label></div>
+                        <div class="radio-pill"><input type="radio" id="bom-estado-na" name="bom-estado" value="N/A"><label for="bom-estado-na">N/A</label></div>
+                    </div>
+                </div>
+
+                <div class="inspection-item">
+                    <p class="inspection-question">Os equipamentos encontram-se livres de objetos soltos e corrosões?</p>
+                    <div class="radio-group">
+                        <div class="radio-pill success"><input type="radio" id="livre-objetos-sim" name="livre-objetos" value="SIM"><label for="livre-objetos-sim">SIM</label></div>
+                        <div class="radio-pill danger"><input type="radio" id="livre-objetos-nao" name="livre-objetos" value="NÃO"><label for="livre-objetos-nao">NÃO</label></div>
+                        <div class="radio-pill"><input type="radio" id="livre-objetos-na" name="livre-objetos" value="N/A"><label for="livre-objetos-na">N/A</label></div>
+                    </div>
+                </div>
+
+                <div class="inspection-item">
+                    <p class="inspection-question">As portas, tampas, dobradiças, pinos de segurança e borrachas de vedação, estão em bom estado e funcionamento?</p>
+                    <div class="radio-group">
+                        <div class="radio-pill success"><input type="radio" id="portas-sim" name="portas" value="SIM"><label for="portas-sim">SIM</label></div>
+                        <div class="radio-pill danger"><input type="radio" id="portas-nao" name="portas" value="NÃO"><label for="portas-nao">NÃO</label></div>
+                        <div class="radio-pill"><input type="radio" id="portas-na" name="portas" value="N/A"><label for="portas-na">N/A</label></div>
+                    </div>
+                </div>
+
+                <div class="inspection-item">
+                    <p class="inspection-question">Os anéis "D" de amarração estão conformes, livres de corrosão em excesso, deformações ou pontos de ruptura?</p>
+                    <div class="radio-group">
+                        <div class="radio-pill success"><input type="radio" id="aneis-d-sim" name="aneis-d" value="SIM"><label for="aneis-d-sim">SIM</label></div>
+                        <div class="radio-pill danger"><input type="radio" id="aneis-d-nao" name="aneis-d" value="NÃO"><label for="aneis-d-nao">NÃO</label></div>
+                        <div class="radio-pill"><input type="radio" id="aneis-d-na" name="aneis-d" value="N/A"><label for="aneis-d-na">N/A</label></div>
+                    </div>
+                </div>
+
+                <div class="inspection-item">
+                    <p class="inspection-question">As bolsas de empilhadeira estão conformes, livres de corrosão em excesso e deformações?</p>
+                    <div class="radio-group">
+                        <div class="radio-pill success"><input type="radio" id="bolsas-sim" name="bolsas" value="SIM"><label for="bolsas-sim">SIM</label></div>
+                        <div class="radio-pill danger"><input type="radio" id="bolsas-nao" name="bolsas" value="NÃO"><label for="bolsas-nao">NÃO</label></div>
+                        <div class="radio-pill"><input type="radio" id="bolsas-na" name="bolsas" value="N/A"><label for="bolsas-na">N/A</label></div>
+                    </div>
+                </div>
+
+                <div class="inspection-item">
+                    <p class="inspection-question">As placas de identificação dos equipamentos estão em bom estado e com as marcações legíveis?</p>
+                    <div class="radio-group">
+                        <div class="radio-pill success"><input type="radio" id="placas-sim" name="placas" value="SIM"><label for="placas-sim">SIM</label></div>
+                        <div class="radio-pill danger"><input type="radio" id="placas-nao" name="placas" value="NÃO"><label for="placas-nao">NÃO</label></div>
+                        <div class="radio-pill"><input type="radio" id="placas-na" name="placas" value="N/A"><label for="placas-na">N/A</label></div>
+                    </div>
+                </div>
+
+                <div class="inspection-item">
+                    <p class="inspection-question">As datas de vencimento dos testes da eslinga estão superiores a 150 dias?</p>
+                    <div class="radio-group">
+                        <div class="radio-pill success"><input type="radio" id="eslinga-150-sim" name="eslinga-150" value="SIM"><label for="eslinga-150-sim">SIM</label></div>
+                        <div class="radio-pill danger"><input type="radio" id="eslinga-150-nao" name="eslinga-150" value="NÃO"><label for="eslinga-150-nao">NÃO</label></div>
+                        <div class="radio-pill"><input type="radio" id="eslinga-150-na" name="eslinga-150" value="N/A"><label for="eslinga-150-na">N/A</label></div>
+                    </div>
+                </div>
+
+                <div class="inspection-item">
+                    <p class="inspection-question">A eslinga está com o cabo lubrificado? Anéis, sapatilhos e punhos estão pintados?</p>
+                    <div class="radio-group">
+                        <div class="radio-pill success"><input type="radio" id="eslinga-lubrificada-sim" name="eslinga-lubrificada" value="SIM"><label for="eslinga-lubrificada-sim">SIM</label></div>
+                        <div class="radio-pill danger"><input type="radio" id="eslinga-lubrificada-nao" name="eslinga-lubrificada" value="NÃO"><label for="eslinga-lubrificada-nao">NÃO</label></div>
+                        <div class="radio-pill"><input type="radio" id="eslinga-lubrificada-na" name="eslinga-lubrificada" value="N/A"><label for="eslinga-lubrificada-na">N/A</label></div>
+                    </div>
+                </div>
+
+                <div class="inspection-item">
+                    <p class="inspection-question">A eslinga está livre de avarias (sapatilho amassado, fio rompido, deformação excessiva, alma exposta etc...)?</p>
+                    <div class="radio-group">
+                        <div class="radio-pill success"><input type="radio" id="eslinga-avarias-sim" name="eslinga-avarias" value="SIM"><label for="eslinga-avarias-sim">SIM</label></div>
+                        <div class="radio-pill danger"><input type="radio" id="eslinga-avarias-nao" name="eslinga-avarias" value="NÃO"><label for="eslinga-avarias-nao">NÃO</label></div>
+                        <div class="radio-pill"><input type="radio" id="eslinga-avarias-na" name="eslinga-avarias" value="N/A"><label for="eslinga-avarias-na">N/A</label></div>
+                    </div>
+                </div>
+
+                <div class="inspection-item">
+                    <p class="inspection-question">Todas as manilhas estão com contra-pinos?</p>
+                    <div class="radio-group">
+                        <div class="radio-pill success"><input type="radio" id="manilhas-sim" name="manilhas" value="SIM"><label for="manilhas-sim">SIM</label></div>
+                        <div class="radio-pill danger"><input type="radio" id="manilhas-nao" name="manilhas" value="NÃO"><label for="manilhas-nao">NÃO</label></div>
+                        <div class="radio-pill"><input type="radio" id="manilhas-na" name="manilhas" value="N/A"><label for="manilhas-na">N/A</label></div>
+                    </div>
+                </div>
+
+                <div class="inspection-item">
+                    <p class="inspection-question">Equipamento e eslinga estão de acordo com o color code do cliente?</p>
+                    <div class="radio-group">
+                        <div class="radio-pill success"><input type="radio" id="color-code-sim" name="color-code" value="SIM"><label for="color-code-sim">SIM</label></div>
+                        <div class="radio-pill danger"><input type="radio" id="color-code-nao" name="color-code" value="NÃO"><label for="color-code-nao">NÃO</label></div>
+                        <div class="radio-pill"><input type="radio" id="color-code-na" name="color-code" value="N/A"><label for="color-code-na">N/A</label></div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- FINALIZAÇÃO -->
+        <div class="section-card">
+            <div class="section-header">
+                <div class="section-icon">✅</div>
+                <h3 class="section-title">Observações e Finalização</h3>
+            </div>
+
+            <div class="form-group" style="margin-bottom:16px;">
+                <label for="observacoes">Observações</label>
+                <textarea id="observacoes" placeholder="Digite aqui as observações relevantes..."></textarea>
+            </div>
+
+            <div class="form-group" style="margin-bottom:20px;">
+                <label>Status da Inspeção</label>
+                <div class="radio-group" style="margin-top:4px;">
+                    <div class="radio-pill success">
+                        <input type="radio" id="status-aprovado" name="status" value="APROVADO">
+                        <label for="status-aprovado">✓ Aprovado</label>
+                    </div>
+                    <div class="radio-pill danger">
+                        <input type="radio" id="status-reprovado" name="status" value="REPROVADO">
+                        <label for="status-reprovado">✕ Reprovado</label>
+                    </div>
+                    <div class="radio-pill">
+                        <input type="radio" id="status-pendente" name="status" value="PENDENTE">
+                        <label for="status-pendente">⏳ Pendente</label>
+                    </div>
+                </div>
+            </div>
+
+            <hr class="divider">
+
+            <div class="form-group" style="margin-bottom:20px;">
+                <label>Imagens do Atendimento</label>
+                <div class="photo-upload-area">
+                    <input type="file" id="foto" accept="image/*" capture="environment" multiple>
+                    <label for="foto" class="btn btn-ghost" style="cursor:pointer; display:inline-flex; align-items:center; gap:8px;">
+                        <span>📷</span> Selecionar / Tirar Foto
+                    </label>
+                    <div class="photo-count-badge" id="photo-count">
+                        <span>📁</span> 0 fotos selecionadas
+                    </div>
+                    <div class="photo-grid" id="fotos"></div>
+                </div>
+            </div>
+
+            <hr class="divider">
+
+            <div class="form-group">
+                <label>Assinatura do Responsável</label>
+                <div class="signature-wrap" id="signature">
+                    <canvas id="signature-canvas"></canvas>
+                </div>
+                <div style="margin-top:8px;">
+                    <button type="button" class="btn btn-ghost btn-sm" id="clear-signature">✕ Limpar Assinatura</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="btn-group" style="margin-bottom: 40px;">
+            <button type="button" class="btn btn-success" id="salvar">
+                <span>💾</span> Salvar Checklist
+            </button>
+            <button type="button" class="btn btn-warning" id="limpar">
+                <span>↺</span> Limpar Formulário
+            </button>
+        </div>
+    </div>
+
+    <!-- ═══ HISTÓRICO TAB ═══ -->
+    <div id="historico" class="tab-content">
+        <h1 class="page-title">Histórico</h1>
+        <p class="page-subtitle">Consulte e gerencie os atendimentos anteriores.</p>
+        <div id="storage-indicator" style="margin-bottom:16px;"></div>
+
+        <div class="filters-bar">
+            <div class="filter-group">
+                <label for="filter-status">Status</label>
+                <select id="filter-status">
+                    <option value="all">Todos</option>
+                    <option value="APROVADO">Aprovado</option>
+                    <option value="REPROVADO">Reprovado</option>
+                    <option value="PENDENTE">Pendente</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="filter-date">Data</label>
+                <input type="date" id="filter-date">
+            </div>
+            <button type="button" class="btn btn-primary btn-sm" id="apply-filters" style="align-self:flex-end;">
+                Aplicar
+            </button>
+            <button type="button" class="btn btn-danger btn-sm" id="clear-all-data" style="align-self:flex-end;">
+                🗑 Limpar Tudo
+            </button>
+        </div>
+
+        <div id="history-list"></div>
+    </div>
+
+</div>
+
+<script>
+    let checklists = [];
+    let signaturePad;
+    let equipamentoCount = 1;
+    let fotosTemp = [];
+    const STORAGE_KEY = 'atendimentosExternosData';
+
+    function getEquipamentoTemplate(index) {
+        return `
+        <div class="equipamento-card" id="equipamento-${index}">
+            <div class="equipamento-header">
+                <span class="equipamento-badge">Equipamento ${index}</span>
+                <button type="button" class="btn btn-danger btn-sm" onclick="removerEquipamento(${index})">✕ Remover</button>
+            </div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Nº Série</label>
+                    <input type="text" class="equipamento-serie" placeholder="Número de série">
+                </div>
+                <div class="form-group">
+                    <label>Modelo</label>
+                    <input type="text" class="equipamento-modelo" placeholder="Modelo">
+                </div>
+                <div class="form-group">
+                    <label>Certificação</label>
+                    <input type="date" class="equipamento-cert-data">
+                </div>
+                <div class="form-group">
+                    <label>Nº Eslinga</label>
+                    <input type="text" class="equipamento-eslinga" placeholder="Número da eslinga">
+                </div>
+                <div class="form-group">
+                    <label>Cert. Eslinga</label>
+                    <input type="date" class="equipamento-eslinga-data">
+                </div>
+                <div class="form-group">
+                    <label>Observações</label>
+                    <input type="text" class="equipamento-obs" placeholder="Observações">
+                </div>
+            </div>
+        </div>`;
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        document.getElementById('data-atendimento').value = new Date().toISOString().split('T')[0];
+        loadFromLocalStorage();
+        initializeSignaturePad();
+        setupEventListeners();
+        updateHistoryList();
+
+        const container = document.getElementById('equipamentos-container');
+        container.innerHTML = '';
+        const el = document.createElement('div');
+        el.innerHTML = getEquipamentoTemplate(equipamentoCount);
+        container.appendChild(el);
+        equipamentoCount++;
+    });
+
+    function setupEventListeners() {
+        document.querySelectorAll('.nav-tab').forEach(tab => {
+            tab.addEventListener('click', e => { e.preventDefault(); switchTab(tab.getAttribute('data-tab')); });
+        });
+        document.getElementById('clear-signature').addEventListener('click', () => signaturePad.clear());
+        document.getElementById('foto').addEventListener('change', addPhotos);
+        document.getElementById('add-equipamento').addEventListener('click', () => {
+            const el = document.createElement('div');
+            el.innerHTML = getEquipamentoTemplate(equipamentoCount);
+            document.getElementById('equipamentos-container').appendChild(el);
+            equipamentoCount++;
+        });
+        document.getElementById('salvar').addEventListener('click', saveChecklist);
+        document.getElementById('limpar').addEventListener('click', () => {
+            if (confirm('Limpar todos os dados do formulário?')) clearForm();
+        });
+        document.getElementById('apply-filters').addEventListener('click', updateHistoryList);
+        document.getElementById('clear-all-data').addEventListener('click', clearAllData);
+    }
+
+    window.removerEquipamento = function (index) {
+        const el = document.getElementById(`equipamento-${index}`);
+        if (el) el.remove();
+    };
+
+    // ── Comprime imagem via Canvas antes de armazenar ──
+    function compressImage(file, maxWidth, maxHeight, quality) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onerror = reject;
+            reader.onload = e => {
+                const img = new Image();
+                img.onerror = reject;
+                img.onload = () => {
+                    let w = img.width, h = img.height;
+                    if (w > maxWidth)  { h = Math.round(h * maxWidth / w);  w = maxWidth; }
+                    if (h > maxHeight) { w = Math.round(w * maxHeight / h); h = maxHeight; }
+                    const canvas = document.createElement('canvas');
+                    canvas.width = w; canvas.height = h;
+                    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                    resolve(canvas.toDataURL('image/jpeg', quality));
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    function addPhotos() {
+        const input = document.getElementById('foto');
+        const container = document.getElementById('fotos');
+        if (!input.files || input.files.length === 0) return;
+
+        const MAX_FOTOS = 10;
+        if (fotosTemp.length >= MAX_FOTOS) {
+            showNotification(`Máximo de ${MAX_FOTOS} fotos por atendimento.`, 'error');
+            input.value = '';
+            return;
+        }
+
+        const arquivos = Array.from(input.files).slice(0, MAX_FOTOS - fotosTemp.length);
+
+        arquivos.forEach(file => {
+            if (!file.type.startsWith('image/')) return;
+
+            compressImage(file, 800, 800, 0.65).then(base64 => {
+                fotosTemp.push({ nome: file.name, base64, tipo: 'image/jpeg' });
+
+                const item = document.createElement('div');
+                item.className = 'photo-item';
+                const img = document.createElement('img');
+                img.src = base64;
+                const btn = document.createElement('button');
+                btn.className = 'remove-photo';
+                btn.innerHTML = '×';
+                btn.onclick = () => {
+                    container.removeChild(item);
+                    const idx = fotosTemp.findIndex(f => f.base64 === base64);
+                    if (idx !== -1) fotosTemp.splice(idx, 1);
+                    updatePhotoCount();
+                };
+                item.appendChild(img);
+                item.appendChild(btn);
+                container.appendChild(item);
+                updatePhotoCount();
+            }).catch(() => {
+                showNotification(`Erro ao processar ${file.name}`, 'error');
+            });
+        });
+
+        input.value = '';
+    }
+
+    function updatePhotoCount() {
+        document.getElementById('photo-count').innerHTML = `<span>📁</span> ${fotosTemp.length} foto(s) selecionada(s)`;
+    }
+
+    function clearForm() {
+        ['inspetor1', 'inspetor2', 'veiculo-placa', 'cliente', 'observacoes'].forEach(id => document.getElementById(id).value = '');
+        document.getElementById('data-atendimento').value = new Date().toISOString().split('T')[0];
+        document.getElementById('equipamentos-container').innerHTML = '';
+        equipamentoCount = 1;
+        const el = document.createElement('div');
+        el.innerHTML = getEquipamentoTemplate(equipamentoCount);
+        document.getElementById('equipamentos-container').appendChild(el);
+        equipamentoCount++;
+        document.querySelectorAll('input[name="servicos"]').forEach(cb => cb.checked = false);
+        document.querySelectorAll('#inspecao-itens input[type="radio"]').forEach(r => r.checked = false);
+        document.querySelectorAll('input[name="status"]').forEach(r => r.checked = false);
+        signaturePad.clear();
+        document.getElementById('fotos').innerHTML = '';
+        fotosTemp = [];
+        updatePhotoCount();
+        showNotification('Formulário limpo!');
+    }
+
+    function collectChecklistData() {
+        const equipamentos = [];
+        document.querySelectorAll('.equipamento-card').forEach(item => {
+            equipamentos.push({
+                serie: item.querySelector('.equipamento-serie')?.value || '',
+                modelo: item.querySelector('.equipamento-modelo')?.value || '',
+                certData: item.querySelector('.equipamento-cert-data')?.value || '',
+                eslinga: item.querySelector('.equipamento-eslinga')?.value || '',
+                eslingaData: item.querySelector('.equipamento-eslinga-data')?.value || '',
+                obs: item.querySelector('.equipamento-obs')?.value || ''
+            });
+        });
+        const servicos = [...document.querySelectorAll('input[name="servicos"]:checked')].map(cb => cb.value);
+        const respostasInspecao = {};
+        document.querySelectorAll('#inspecao-itens .inspection-item').forEach((item, i) => {
+            respostasInspecao[`pergunta_${i + 1}`] = {
+                pergunta: item.querySelector('.inspection-question').textContent.trim(),
+                resposta: item.querySelector('input[type="radio"]:checked')?.value || 'NÃO RESPONDIDO'
+            };
+        });
+        return {
+            id: 'ATD' + Date.now(),
+            inspetor1: document.getElementById('inspetor1').value,
+            inspetor2: document.getElementById('inspetor2').value,
+            data: document.getElementById('data-atendimento').value,
+            veiculo: document.getElementById('veiculo-placa').value,
+            cliente: document.getElementById('cliente').value,
+            equipamentos, servicos, respostasInspecao,
+            observacoes: document.getElementById('observacoes').value,
+            status: document.querySelector('input[name="status"]:checked')?.value || 'PENDENTE',
+            assinatura: signaturePad.isEmpty() ? '' : signaturePad.toDataURL(),
+            fotos: fotosTemp.map(f => ({ nome: f.nome, base64: f.base64, tipo: f.tipo })),
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    function validateForm() {
+        const checks = [
+            [document.getElementById('inspetor1').value.trim(), 'Informe o nome do inspetor!'],
+            [document.getElementById('data-atendimento').value, 'Informe a data do atendimento!'],
+            [document.getElementById('veiculo-placa').value.trim(), 'Informe o veículo/placa!'],
+            [document.getElementById('cliente').value.trim(), 'Informe o nome do cliente!']
+        ];
+        for (const [val, msg] of checks) {
+            if (!val) { showNotification(msg, 'error'); return false; }
+        }
+        return true;
+    }
+
+    function saveChecklist() {
+        if (!validateForm()) return;
+        try {
+            const data = collectChecklistData();
+            checklists.push(data);
+            if (saveToLocalStorage()) {
+                showNotification('Checklist salvo com sucesso!');
+                setTimeout(() => generatePDF(data.id), 500);
+                updateHistoryList();
+                clearForm();
+            }
+        } catch (e) {
+            showNotification('Erro ao salvar: ' + e.message, 'error');
+        }
+    }
+
+    function saveToLocalStorage() {
+        // Tentativa 1: salvar normalmente
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(checklists));
+            return true;
+        } catch (e) {
+            if (e.name !== 'QuotaExceededError') { showNotification('Erro ao salvar!', 'error'); return false; }
+        }
+
+        // Tentativa 2: salvar sem fotos do atendimento atual, mas mantendo fotos dos anteriores
+        showNotification('Armazenamento quase cheio. Salvando sem fotos do atendimento atual...', 'error');
+        try {
+            const semFotos = checklists.map((c, i) => {
+                if (i === checklists.length - 1) return { ...c, fotos: [] }; // remove fotos só do último
+                return c;
+            });
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(semFotos));
+            checklists = semFotos;
+            showNotification('Salvo sem fotos. Gere o PDF agora para ter as imagens.', 'error');
+            return true;
+        } catch (e) {}
+
+        // Tentativa 3: salvar sem fotos em NENHUM atendimento
+        try {
+            const semTodasFotos = checklists.map(c => ({ ...c, fotos: [] }));
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(semTodasFotos));
+            checklists = semTodasFotos;
+            showNotification('Espaço crítico! Salvo sem fotos. Exclua atendimentos antigos.', 'error');
+            return true;
+        } catch (e) {
+            showNotification('Impossível salvar. Exclua atendimentos antigos no Histórico.', 'error');
+            return false;
+        }
+    }
+
+    // Retorna o tamanho estimado do localStorage em KB
+    function getStorageSizeKB() {
+        let total = 0;
+        for (const key in localStorage) {
+            if (localStorage.hasOwnProperty(key)) total += localStorage[key].length * 2;
+        }
+        return Math.round(total / 1024);
+    }
+
+    function loadFromLocalStorage() {
+        try {
+            const d = localStorage.getItem(STORAGE_KEY);
+            checklists = d ? JSON.parse(d) : [];
+        } catch { checklists = []; }
+    }
+
+    window.generatePDF = function (id) {
+        const checklist = checklists.find(c => c.id === id);
+        if (!checklist) { showNotification('Checklist não encontrado!', 'error'); return; }
+        try {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const pageHeight = doc.internal.pageSize.getHeight();
+            const margin = 15;
+            let yPos = margin;
+            let pageCount = 1;
+
+            function checkSpace(needed) {
+                if (yPos + needed > pageHeight - margin) {
+                    doc.addPage(); pageCount++; yPos = margin; return true;
+                }
+                return false;
+            }
+
+            function drawSectionBackground(yStart, height) {
+                doc.setFillColor(245, 245, 245);
+                doc.rect(margin - 2, yStart - 2, pageWidth - 2 * margin + 4, height + 4, 'F');
+                doc.setDrawColor(200, 200, 200);
+                doc.rect(margin - 2, yStart - 2, pageWidth - 2 * margin + 4, height + 4, 'S');
+            }
+
+            doc.setFillColor(255, 204, 0);
+            doc.rect(margin, 5, 30, 8, 'F');
+            doc.setFontSize(7); doc.setTextColor(51, 51, 51);
+            doc.text('TIGER RENTANK', margin + 15, 10, { align: 'center' });
+            doc.setFontSize(14);
+            doc.text('ATENDIMENTO EXTERNO', pageWidth / 2, 22, { align: 'center' });
+
+            yPos = 30;
+            doc.setFontSize(9); doc.setTextColor(0, 0, 0);
+            doc.text(`Inspetor 1: ${checklist.inspetor1}`, margin, yPos);
+            doc.text(`Inspetor 2: ${checklist.inspetor2 || '---'}`, margin, yPos + 4);
+            doc.text(`Data: ${checklist.data}`, margin, yPos + 8);
+            doc.text(`Veículo: ${checklist.veiculo}`, margin + 80, yPos);
+            doc.text(`Cliente: ${checklist.cliente}`, margin + 80, yPos + 4);
+
+            yPos += 18;
+            let sectionStart = yPos - 2;
+            let eqs = checklist.equipamentos || [];
+            drawSectionBackground(sectionStart, 10 + eqs.length * 18);
+            doc.setFontSize(11); doc.setTextColor(255, 153, 0);
+            doc.text('EQUIPAMENTOS:', margin, yPos); yPos += 5;
+            eqs.forEach((eq, i) => {
+                checkSpace(20);
+                doc.setFontSize(8); doc.setTextColor(0, 0, 0);
+                doc.text(`Equip. ${i + 1}: Série: ${eq.serie || '---'} | Modelo: ${eq.modelo || '---'}`, margin + 2, yPos);
+                doc.text(`Cert: ${eq.certData || '---'} | Eslinga: ${eq.eslinga || '---'} | Cert Eslinga: ${eq.eslingaData || '---'}`, margin + 4, yPos + 4);
+                if (eq.obs) doc.text(`Obs: ${eq.obs}`, margin + 4, yPos + 8);
+                yPos += 14;
+            });
+            yPos += 5;
+
+            checkSpace(10);
+            sectionStart = yPos - 2;
+            drawSectionBackground(sectionStart, 10 + (checklist.servicos?.length || 1) * 4);
+            doc.setFontSize(11); doc.setTextColor(255, 153, 0);
+            doc.text('SERVIÇOS:', margin, yPos); yPos += 5;
+            doc.setFontSize(8); doc.setTextColor(0, 0, 0);
+            if (checklist.servicos?.length > 0) {
+                checklist.servicos.forEach(s => { checkSpace(4); doc.text(`• ${s}`, margin + 3, yPos); yPos += 4; });
+            } else { doc.text('Nenhum serviço selecionado', margin, yPos); yPos += 5; }
+            yPos += 3;
+
+            checkSpace(10);
+            sectionStart = yPos - 2;
+            let insp = Object.values(checklist.respostasInspecao || {});
+            let estH = 10;
+            insp.forEach(i => { estH += doc.splitTextToSize(i.pergunta, pageWidth - 2 * margin - 10).length * 3 + 5; });
+            drawSectionBackground(sectionStart, estH);
+            doc.setFontSize(11); doc.setTextColor(255, 153, 0);
+            doc.text('INSPEÇÃO:', margin, yPos); yPos += 5;
+            insp.forEach(item => {
+                checkSpace(10);
+                doc.setFontSize(7); doc.setTextColor(0, 0, 0);
+                const lines = doc.splitTextToSize(item.pergunta, pageWidth - 2 * margin - 10);
+                doc.text(lines, margin + 3, yPos); yPos += lines.length * 3;
+                doc.setFont(undefined, 'bold'); doc.setTextColor(0, 102, 204);
+                doc.text(`Resposta: ${item.resposta}`, margin + 5, yPos);
+                doc.setFont(undefined, 'normal'); doc.setTextColor(0, 0, 0); yPos += 5;
+            });
+
+            yPos += 3; checkSpace(15);
+            sectionStart = yPos - 2;
+            let obsL = doc.splitTextToSize(checklist.observacoes || '---', pageWidth - 2 * margin);
+            drawSectionBackground(sectionStart, 10 + obsL.length * 3 + 8);
+            doc.setFontSize(11); doc.setTextColor(255, 153, 0);
+            doc.text('OBSERVAÇÕES:', margin, yPos); yPos += 5;
+            doc.setFontSize(8); doc.setTextColor(0, 0, 0);
+            doc.text(obsL, margin, yPos); yPos += obsL.length * 3 + 3;
+            doc.setFontSize(9); doc.setFont(undefined, 'bold');
+            const sc = checklist.status === 'APROVADO' ? [76, 175, 80] : checklist.status === 'REPROVADO' ? [244, 67, 54] : [255, 152, 0];
+            doc.setTextColor(...sc);
+            doc.text(`STATUS: ${checklist.status}`, margin, yPos);
+            doc.setTextColor(0, 0, 0); doc.setFont(undefined, 'normal'); yPos += 5;
+
+            if (checklist.assinatura) {
+                checkSpace(22);
+                drawSectionBackground(yPos - 2, 22);
+                doc.setFontSize(11); doc.setTextColor(255, 153, 0);
+                doc.text('ASSINATURA:', margin, yPos); yPos += 5;
+                try { doc.addImage(checklist.assinatura, 'PNG', margin, yPos, 40, 15); yPos += 18; } catch (e) { }
+            }
+
+            if (checklist.fotos?.length > 0) {
+                const fw = 40, fh = 40, esp = 2;
+                const fpl = Math.floor((pageWidth - 2 * margin) / (fw + esp));
+                for (let i = 0; i < checklist.fotos.length; i++) {
+                    if (i === 0 || i % (fpl * 3) === 0) {
+                        if (i > 0) { doc.addPage(); pageCount++; yPos = margin; } else checkSpace(15);
+                        doc.setFontSize(12); doc.setTextColor(255, 153, 0);
+                        doc.text('REGISTRO FOTOGRÁFICO', pageWidth / 2, yPos, { align: 'center' }); yPos += 8;
+                    }
+                    const linha = Math.floor((i % (fpl * 3)) / fpl);
+                    const col = i % fpl;
+                    const xPos = margin + col * (fw + esp);
+                    const yFoto = yPos + linha * (fh + esp);
+                    try {
+                        const foto = checklist.fotos[i];
+                        if (foto?.base64?.startsWith('data:image')) {
+                            const fmt = foto.base64.includes('image/png') ? 'PNG' : 'JPEG';
+                            doc.addImage(foto.base64, fmt, xPos, yFoto, fw, fh);
+                            doc.setDrawColor(200, 200, 200);
+                            doc.rect(xPos, yFoto, fw, fh);
+                        }
+                    } catch (e) { }
+                }
+            }
+
+            for (let i = 1; i <= pageCount; i++) {
+                doc.setPage(i); doc.setFontSize(7); doc.setTextColor(128, 128, 128);
+                doc.text(`Página ${i} de ${pageCount}`, pageWidth - margin, pageHeight - 8, { align: 'right' });
+            }
+            doc.save(`atendimento_${checklist.cliente.replace(/\s+/g, '_')}_${checklist.data}.pdf`);
+            showNotification('PDF gerado com sucesso!');
+        } catch (e) {
+            showNotification('Erro ao gerar PDF: ' + e.message, 'error');
+        }
+    };
+
+    function updateStorageIndicator() {
+        const el = document.getElementById('storage-indicator');
+        if (!el) return;
+        const usedKB = getStorageSizeKB();
+        const limitKB = 5120; // ~5MB typical localStorage limit
+        const pct = Math.min(100, Math.round((usedKB / limitKB) * 100));
+        let color = 'var(--success)';
+        let msg = 'Armazenamento OK';
+        if (pct > 80) { color = 'var(--danger)'; msg = 'Armazenamento quase cheio! Exclua registros antigos.'; }
+        else if (pct > 55) { color = 'var(--warning)'; msg = 'Armazenamento moderado'; }
+        el.innerHTML = `
+            <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:12px 14px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                    <span style="font-size:12px;color:var(--text-muted);">💾 Armazenamento local</span>
+                    <span style="font-size:12px;font-weight:700;color:${color};">${usedKB} KB / ${limitKB} KB (${pct}%)</span>
+                </div>
+                <div style="background:var(--bg-input);border-radius:100px;height:6px;overflow:hidden;">
+                    <div style="width:${pct}%;height:100%;background:${color};border-radius:100px;transition:width 0.4s;"></div>
+                </div>
+                ${pct > 55 ? `<p style="font-size:11px;color:${color};margin-top:6px;">${msg}</p>` : ''}
+            </div>`;
+    }
+
+    function showNotification(message, type = 'success') {
+        const notif = document.getElementById('notification');
+        document.getElementById('notif-text').textContent = message;
+        document.getElementById('notif-icon').textContent = type === 'error' ? '✕' : '✓';
+        notif.className = 'notification' + (type === 'error' ? ' error' : '');
+        clearTimeout(notif._timer);
+        notif._timer = setTimeout(() => notif.classList.add('hidden'), 3500);
+    }
+
+    function switchTab(tabId) {
+        document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+        document.querySelector(`[data-tab="${tabId}"]`).classList.add('active');
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        if (tabId === 'historico') { updateHistoryList(); updateStorageIndicator(); }
+    }
+
+    function initializeSignaturePad() {
+        const canvas = document.getElementById('signature-canvas');
+        function setup(c) {
+            const r = Math.max(window.devicePixelRatio || 1, 1);
+            c.width = c.offsetWidth * r;
+            c.height = c.offsetHeight * r;
+            c.getContext('2d').scale(r, r);
+        }
+        setup(canvas);
+        signaturePad = new SignaturePad(canvas, { backgroundColor: 'rgb(255,255,255)' });
+        window.addEventListener('resize', () => { setup(canvas); signaturePad.clear(); });
+    }
+
+    function updateHistoryList() {
+        const list = document.getElementById('history-list');
+        list.innerHTML = '';
+        if (!checklists.length) {
+            list.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📂</div><p>Nenhum atendimento registrado ainda.</p></div>`;
+            return;
+        }
+        const filterStatus = document.getElementById('filter-status').value;
+        const filterDate = document.getElementById('filter-date').value;
+        const filtered = checklists
+            .filter(item => {
+                if (filterStatus !== 'all' && item.status !== filterStatus) return false;
+                if (filterDate && item.data !== filterDate) return false;
+                return true;
+            })
+            .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+        if (!filtered.length) {
+            list.innerHTML = `<div class="empty-state"><div class="empty-state-icon">🔍</div><p>Nenhum atendimento encontrado com os filtros selecionados.</p></div>`;
+            return;
+        }
+
+        filtered.forEach(item => {
+            const badgeClass = item.status === 'APROVADO' ? 'badge-approved' : item.status === 'REPROVADO' ? 'badge-rejected' : 'badge-pending';
+            const card = document.createElement('div');
+            card.className = 'history-card';
+            card.innerHTML = `
+                <div class="history-info">
+                    <div class="history-client">${item.cliente}</div>
+                    <div class="history-meta">
+                        <span>📅 ${item.data}</span>
+                        <span class="meta-dot">·</span>
+                        <span>👤 ${item.inspetor1}</span>
+                        <span class="meta-dot">·</span>
+                        <span>🚗 ${item.veiculo}</span>
+                        <span class="meta-dot">·</span>
+                        <span>🔧 ${item.equipamentos.length} equip.</span>
+                        <span class="meta-dot">·</span>
+                        <span>📷 ${item.fotos?.length || 0} fotos</span>
+                    </div>
+                    <div style="margin-top:8px;">
+                        <span class="status-badge ${badgeClass}">${item.status}</span>
+                    </div>
+                </div>
+                <div class="history-actions">
+                    <button class="btn btn-primary btn-sm" onclick="generatePDF('${item.id}')">📄 PDF</button>
+                    <button class="btn btn-danger btn-sm" onclick="deleteChecklist('${item.id}')">🗑</button>
+                </div>`;
+            list.appendChild(card);
+        });
+    }
+
+    window.deleteChecklist = function (id) {
+        if (confirm('Excluir este atendimento?')) {
+            checklists = checklists.filter(c => c.id !== id);
+            if (saveToLocalStorage()) { updateHistoryList(); showNotification('Atendimento excluído!'); }
+        }
+    };
+
+    function clearAllData() {
+        if (confirm('Excluir TODOS os atendimentos? Esta ação não pode ser desfeita!')) {
+            checklists = [];
+            if (saveToLocalStorage()) { updateHistoryList(); showNotification('Todos os dados foram excluídos!'); }
+        }
+    }
+</script>
+</body>
+</html>
