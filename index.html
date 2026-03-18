@@ -589,22 +589,11 @@ function getEquipamentoTemplate(index) {
     <div class="form-grid">
       <div class="form-group"><label>Nº Série</label><input type="text" class="equipamento-serie" placeholder="Número de série"></div>
       <div class="form-group"><label>Modelo</label><select class="equipamento-modelo"><option value="">Selecione o equipamento</option><option>BABY CONTAINER</option><option>CAÇAMBA</option><option>CAIXA</option><option>CESTA</option><option>CONTAINER 10'</option><option>CONTAINER 20'</option><option>CONTENTOR DE TERCEIRO</option><option>CUTTING BOX</option><option>FRAC TANK</option><option>GAPE 1.000L</option><option>GAPE 1.500L</option><option>HELI FUEL</option><option>MINI CONTAINER</option><option>OCTO 5.000L</option><option>REEFER</option><option>SKID</option><option>TANQUE 1.000L</option><option>TANQUE 1.500L</option><option>TANQUE 5.000L</option></select></div>
-      <div class="form-group">
-        <label>Data da Certificação</label>
-        <input type="date" class="equipamento-cert-data" placeholder="Data em que foi certificado">
-      </div>
-      <div class="form-group">
-        <label>Vencimento Certificação <span style="font-size:10px;color:var(--text-muted);font-weight:400;">(auto +1 ano, editável)</span></label>
-        <input type="date" class="equipamento-cert-venc">
-        <span class="cert-indicator" style="font-size:11px;font-weight:700;margin-top:3px;display:none;"></span>
-      </div>
+      <div class="form-group"><label>Data da Certificação</label><input type="date" class="equipamento-cert-data"></div>
+      <div class="form-group"><label>Vencimento Certif. <span style="font-size:10px;color:var(--text-muted);font-weight:400;">(auto +1 ano)</span></label><input type="date" class="equipamento-cert-venc"><span class="cert-indicator" style="font-size:11px;font-weight:700;margin-top:3px;display:none;"></span></div>
       <div class="form-group"><label>Nº Eslinga</label><input type="text" class="equipamento-eslinga" placeholder="Número da eslinga"></div>
       <div class="form-group"><label>Data Cert. Eslinga</label><input type="date" class="equipamento-eslinga-data"></div>
-      <div class="form-group">
-        <label>Vencimento Eslinga <span style="font-size:10px;color:var(--text-muted);font-weight:400;">(auto +1 ano, editável)</span></label>
-        <input type="date" class="equipamento-eslinga-venc">
-        <span class="cert-indicator" style="font-size:11px;font-weight:700;margin-top:3px;display:none;"></span>
-      </div>
+      <div class="form-group"><label>Vencimento Eslinga <span style="font-size:10px;color:var(--text-muted);font-weight:400;">(auto +1 ano)</span></label><input type="date" class="equipamento-eslinga-venc"><span class="cert-indicator" style="font-size:11px;font-weight:700;margin-top:3px;display:none;"></span></div>
       <div class="form-group span-2"><label>Observações</label><textarea class="equipamento-obs" rows="2" placeholder="Observações do equipamento..." style="min-height:56px;resize:vertical;"></textarea></div>
     </div>
   </div>`;
@@ -693,7 +682,7 @@ function clearDraft() {
 }
 
 // ════════════════════════════════════════
-//  CERTIFICAÇÃO — INDICADORES DE VALIDADE
+//  CERTIFICAÇÃO
 // ════════════════════════════════════════
 function diasAteVencimento(dateStr) {
   if (!dateStr) return null;
@@ -702,13 +691,12 @@ function diasAteVencimento(dateStr) {
 }
 function certInfo(dias) {
   if (dias === null) return null;
-  if (dias > 120) return { txt:`✓ ${dias} dias restantes`, color:'var(--success)', pdf:[34,197,94] };
-  if (dias > 90)  return { txt:`⚠ ${dias} dias restantes`, color:'var(--yellow-dark)', pdf:[202,138,4] };
-  if (dias > 0)   return { txt:`✕ ${dias} dias - crítico!`, color:'var(--danger)', pdf:[239,68,68] };
-  return { txt:`✕ VENCIDA há ${Math.abs(dias)} dia(s)!`, color:'var(--danger)', pdf:[239,68,68] };
+  if (dias > 120) return { txt:`✓ ${dias} dias restantes`, color:'var(--success)' };
+  if (dias > 90)  return { txt:`⚠ ${dias} dias restantes`, color:'var(--yellow-dark)' };
+  if (dias > 0)   return { txt:`✕ ${dias} dias - crítico!`, color:'var(--danger)' };
+  return { txt:`✕ VENCIDA há ${Math.abs(dias)} dia(s)!`, color:'var(--danger)' };
 }
 function addOneYear(dateStr) {
-  // input[type=date] always returns YYYY-MM-DD — just increment the year
   if (!dateStr) return '';
   const parts = dateStr.split('-');
   if (parts.length !== 3) return '';
@@ -717,7 +705,6 @@ function addOneYear(dateStr) {
   return (y + 1) + '-' + parts[1] + '-' + parts[2];
 }
 function updateCertIndicator(vencInput) {
-  // O indicador fica no span depois do campo de vencimento
   const span = vencInput.nextElementSibling;
   if (!span || !span.classList.contains('cert-indicator')) return;
   const info = certInfo(diasAteVencimento(vencInput.value));
@@ -813,16 +800,15 @@ function setupEventListeners() {
   document.getElementById('import-json-btn').addEventListener('click', () => document.getElementById('import-json-input').click());
   document.getElementById('import-json-input').addEventListener('change', importBackup);
 
-  // Cert — auto-vencimento +1 ano e indicador
   document.getElementById('equipamentos-container').addEventListener('change', function(e) {
     const tgt = e.target;
     if (tgt.classList.contains('equipamento-cert-data')) {
-      const vencInput = tgt.closest('.equipamento-card').querySelector('.equipamento-cert-venc');
-      if (vencInput && !vencInput.value && tgt.value) { vencInput.value = addOneYear(tgt.value); updateCertIndicator(vencInput); }
+      const vi = tgt.closest('.equipamento-card').querySelector('.equipamento-cert-venc');
+      if (vi && !vi.value && tgt.value) { vi.value = addOneYear(tgt.value); updateCertIndicator(vi); }
     }
     if (tgt.classList.contains('equipamento-eslinga-data')) {
-      const vencInput = tgt.closest('.equipamento-card').querySelector('.equipamento-eslinga-venc');
-      if (vencInput && !vencInput.value && tgt.value) { vencInput.value = addOneYear(tgt.value); updateCertIndicator(vencInput); }
+      const vi = tgt.closest('.equipamento-card').querySelector('.equipamento-eslinga-venc');
+      if (vi && !vi.value && tgt.value) { vi.value = addOneYear(tgt.value); updateCertIndicator(vi); }
     }
     if (tgt.classList.contains('equipamento-cert-venc') || tgt.classList.contains('equipamento-eslinga-venc')) {
       updateCertIndicator(tgt);
@@ -930,11 +916,11 @@ function collectFormData(id) {
       serie:       item.querySelector('.equipamento-serie')?.value || '',
       modelo:      item.querySelector('.equipamento-modelo')?.value || '',
       certData:    item.querySelector('.equipamento-cert-data')?.value || '',
-      certVenc:    item.querySelector('.equipamento-cert-venc')?.value || '',
       eslinga:     item.querySelector('.equipamento-eslinga')?.value || '',
       eslingaData: item.querySelector('.equipamento-eslinga-data')?.value || '',
-      eslingaVenc: item.querySelector('.equipamento-eslinga-venc')?.value || '',
       obs:         item.querySelector('.equipamento-obs')?.value || '',
+      certVenc:    item.querySelector('.equipamento-cert-venc')?.value || '',
+      eslingaVenc: item.querySelector('.equipamento-eslinga-venc')?.value || '',
       status:      item.querySelector('input[name^="eq-status"]:checked')?.value || ''
     });
   });
@@ -994,7 +980,7 @@ function fillFormWithData(d) {
     card.querySelector('.equipamento-eslinga').value      = eq.eslinga   || '';
     card.querySelector('.equipamento-eslinga-data').value = eq.eslingaData || '';
     card.querySelector('.equipamento-obs').value          = eq.obs       || '';
-    if (eq.certVenc)    { card.querySelector('.equipamento-cert-venc').value    = eq.certVenc;    }
+    if (eq.certVenc)    { card.querySelector('.equipamento-cert-venc').value    = eq.certVenc; }
     if (eq.eslingaVenc) { card.querySelector('.equipamento-eslinga-venc').value = eq.eslingaVenc; }
     if (eq.status) { const r = card.querySelector(`input[value="${eq.status}"]`); if (r) r.checked = true; }
   });
@@ -1500,18 +1486,20 @@ window.generatePDF = function(id) {
         const hj = new Date(); hj.setHours(0,0,0,0);
         return Math.ceil((new Date(ds+'T00:00:00') - hj) / 86400000);
       };
+      // Sem emoji — jsPDF adiciona espaço extra nos emojis
       const pdfCertInfo = (ds) => {
         const d = pdfDias(ds);
         if (d===null) return null;
-        if (d>120) return { txt:`✓ ${d} dias restantes`, col:[34,197,94] };
-        if (d>90)  return { txt:`⚠ ${d} dias restantes`, col:[202,138,4] };
-        if (d>0)   return { txt:`✕ ${d} dias - crítico!`, col:[239,68,68] };
-        return { txt:`✕ VENCIDA há ${Math.abs(d)} dia(s)!`, col:[239,68,68] };
+        if (d>120) return { txt:`${d} dias restantes`, col:[34,197,94] };
+        if (d>90)  return { txt:`${d} dias - atencao`, col:[202,138,4] };
+        if (d>0)   return { txt:`${d} dias - critico!`, col:[239,68,68] };
+        return { txt:`VENCIDA ha ${Math.abs(d)} dia(s)!`, col:[239,68,68] };
       };
-      const vencInfo  = pdfCertInfo(eq.certVenc);
+      const vencInfo        = pdfCertInfo(eq.certVenc);
       const eslingaVencInfo = pdfCertInfo(eq.eslingaVenc);
-      const certExtraH = (vencInfo || eslingaVencInfo) ? 5 : 0;
-      const eqH = 22 + certExtraH + (obsLines.length > 0 ? obsLines.length*3.5+3 : 0);
+      const certExtraH      = vencInfo ? 4.5 : 0;
+      const eslingaExtraH   = eslingaVencInfo ? 4.5 : 0;
+      const eqH = 34 + certExtraH + eslingaExtraH + (obsLines.length > 0 ? obsLines.length*3.5+3 : 0);
       chk(eqH+4);
       doc.setFillColor(248,248,246); doc.setDrawColor(218,218,215); doc.setLineWidth(0.25);
       doc.roundedRect(mg, y, W-2*mg, eqH, 1.5, 1.5, 'FD');
@@ -1520,28 +1508,36 @@ window.generatePDF = function(id) {
       doc.text('EQUIP. '+(i+1), mg+5, y+7); doc.setFont(undefined,'normal');
       if (eq.status) { pillText(eq.status, W-mg-30, y+7.5, eq.status); }
       const fcw = (W-2*mg-10)/3;
-      // Linha 1: Modelo, Série, Vencimento Cert
-      [{l:'Modelo',v:eq.modelo,vi:null},
-       {l:'Nº Série',v:eq.serie,vi:null},
-       {l:'Venc. Certif.',v:fmtDate(eq.certVenc),vi:vencInfo}
-      ].forEach((f,fi)=>{
+      // Linha 1: Modelo | N. Serie | Data Certif.
+      [{l:'Modelo',v:eq.modelo},{l:'N. Serie',v:eq.serie},{l:'Data Certif.',v:fmtDate(eq.certData)}].forEach((f,fi)=>{
         const fc=mg+4+fi*fcw, fr=y+14;
         doc.setFontSize(6.5); doc.setTextColor(160,160,160); doc.text(f.l+':', fc, fr-3.5);
         doc.setFontSize(7.5); doc.setFont(undefined,'bold'); doc.setTextColor(30,30,30);
         doc.text(f.v||'—', fc, fr); doc.setFont(undefined,'normal');
-        if (f.vi){ doc.setFontSize(6); doc.setFont(undefined,'bold'); doc.setTextColor(...f.vi.col); doc.text(f.vi.txt, fc, fr+4); doc.setFont(undefined,'normal'); }
       });
-      // Linha 2: Eslinga, Venc. Eslinga
-      const row2Y = y + 14 + (vencInfo ? 10 : 6);
-      [{l:'Eslinga',v:eq.eslinga,vi:null},
-       {l:'Venc. Eslinga',v:fmtDate(eq.eslingaVenc),vi:eslingaVencInfo}
-      ].forEach((f,fi)=>{
+      // Venc. Certif. na col 3, linha abaixo
+      const c3x = mg+4+2*fcw;
+      doc.setFontSize(6.5); doc.setTextColor(160,160,160); doc.text('Venc. Certif.:', c3x, y+19.5);
+      doc.setFontSize(7.5); doc.setFont(undefined,'bold'); doc.setTextColor(30,30,30);
+      doc.text(fmtDate(eq.certVenc)||'—', c3x, y+23); doc.setFont(undefined,'normal');
+      if (vencInfo) {
+        doc.setFontSize(6.5); doc.setFont(undefined,'bold');
+        doc.setTextColor(...vencInfo.col);
+        doc.text(vencInfo.txt, c3x, y+27); doc.setFont(undefined,'normal');
+      }
+      // Linha 2: Eslinga | Data Cert. Esl. | Venc. Eslinga
+      const row2Y = y + 14 + 13 + certExtraH;
+      [{l:'Eslinga',v:eq.eslinga},{l:'Data Cert. Esl.',v:fmtDate(eq.eslingaData)},{l:'Venc. Eslinga',v:fmtDate(eq.eslingaVenc)}].forEach((f,fi)=>{
         const fc=mg+4+fi*fcw, fr=row2Y;
         doc.setFontSize(6.5); doc.setTextColor(160,160,160); doc.text(f.l+':', fc, fr-3.5);
         doc.setFontSize(7.5); doc.setFont(undefined,'bold'); doc.setTextColor(30,30,30);
         doc.text(f.v||'—', fc, fr); doc.setFont(undefined,'normal');
-        if (f.vi){ doc.setFontSize(6); doc.setFont(undefined,'bold'); doc.setTextColor(...f.vi.col); doc.text(f.vi.txt, fc, fr+4); doc.setFont(undefined,'normal'); }
       });
+      if (eslingaVencInfo) {
+        doc.setFontSize(6.5); doc.setFont(undefined,'bold');
+        doc.setTextColor(...eslingaVencInfo.col);
+        doc.text(eslingaVencInfo.txt, mg+4+2*fcw, row2Y+4); doc.setFont(undefined,'normal');
+      }
       if (obsLines.length) {
         const obsY = row2Y + (eslingaVencInfo ? 9 : 5);
         doc.setFontSize(7); doc.setTextColor(90,90,90); doc.text(obsLines, mg+4, obsY);
